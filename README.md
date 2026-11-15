@@ -300,20 +300,53 @@ Una **task di codice** è completata soltanto quando:
 
 ```text
 OmniPark/
-├── public/                  # Risorse statiche
+├── public/                         # Risorse statiche
 ├── src/
-│   ├── app/                 # Interfaccia e API Next.js
-│   │   └── api/health/db/   # Verifica della connessione al DB
-│   └── lib/                 # Moduli condivisi e test iniziali
-├── .env.example             # Modello delle variabili d'ambiente
-├── .nvmrc                   # Versione Node.js condivisa
-├── compose.yaml             # PostgreSQL tramite Docker
-├── eslint.config.mjs        # Configurazione ESLint
-├── .prettierrc.json         # Regole Prettier
-├── .prettierignore          # Esclusioni Prettier
-├── vitest.config.ts         # Test e coverage
-├── package.json
-└── package-lock.json
+│   ├── app/                        # Routing Next.js e API
+│   │   ├── api/
+│   │   │   └── health/
+│   │   │       └── db/
+│   │   │           └── route.ts    # Test connessione PostgreSQL
+│   │   ├── favicon.ico
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   │
+│   ├── presentation/               # Interfaccia utente
+│   │   └── .gitkeep
+│   │
+│   ├── application/                # Logica applicativa
+│   │   ├── utenti-accessi/
+│   │   ├── gestione-stalli/
+│   │   ├── gestione-soste/
+│   │   ├── wallet/
+│   │   ├── segnalazioni/
+│   │   └── amministrazione/
+│   │
+│   ├── persistence/                # Archivio dati
+│   │   └── .gitkeep
+│   │
+│   ├── simulators/                 # Simulatori IoT, ANPR e pagamenti
+│   │   └── .gitkeep
+│   │
+│   └── lib/                        # Codice iniziale del setup
+│       ├── db.ts                   # Pool di connessione PostgreSQL
+│       ├── tariffe.ts              # Funzione di esempio
+│       └── tariffe.test.ts         # Test automatici di esempio
+│
+├── .env.example                    # Modello variabili d'ambiente
+├── .gitignore                      # File esclusi da Git
+├── .nvmrc                          # Versione Node.js
+├── .prettierrc.json                # Regole di formattazione
+├── .prettierignore                 # Esclusioni Prettier
+├── compose.yaml                    # PostgreSQL tramite Docker
+├── eslint.config.mjs               # Configurazione ESLint
+├── next.config.ts                  # Configurazione Next.js
+├── package.json                    # Dipendenze e script
+├── package-lock.json               # Versioni dipendenze bloccate
+├── tsconfig.json                   # Configurazione TypeScript
+├── vitest.config.ts                # Test e code coverage
+└── README.md                       # Documentazione del progetto
 ```
 
 > ### Struttura dei sottosistemi
@@ -339,12 +372,3 @@ La cartella `src/app/` contiene il routing Next.js, mentre `src/lib/` contiene i
 La struttura è basata sulla versione 0.1 dell'SDD e potrà essere aggiornata in seguito alle decisioni architetturali del team.
 
 ---
-
-## 📌 Attività ancora aperte
-
-- [ ] Definire e approvare i sottosistemi in **SDD-01**.
-- [ ] Preparare **dati di esempio** riproducibili.
-- [ ] Definire e integrare il **simulatore**.
-- [ ] Ampliare i test dei requisiti ad Alta priorità e la coverage.
-- [ ] Esaminare le segnalazioni delle dipendenze con `npm audit`, evitando aggiornamenti forzati non valutati.
-- [ ] Verificare l'installazione su un **clone pulito** prima di chiudere la task di setup.
