@@ -316,7 +316,27 @@ OmniPark/
 └── package-lock.json
 ```
 
-> **SDD-01 in attesa:** le cartelle dei sottosistemi saranno create soltanto dopo che il team ne avrà definito e approvato l'architettura.
+> ### Struttura dei sottosistemi
+
+Il progetto è organizzato secondo la decomposizione architetturale descritta nel documento **OMP_SDD_0.1, §3.2**.
+
+Sono state predisposte le cartelle dei seguenti sottosistemi:
+
+- **Presentazione:** `src/presentation/`
+- **Utenti e accessi:** `src/application/utenti-accessi/`
+- **Gestione stalli:** `src/application/gestione-stalli/`
+- **Gestione soste:** `src/application/gestione-soste/`
+- **Wallet:** `src/application/wallet/`
+- **Segnalazioni:** `src/application/segnalazioni/`
+- **Amministrazione:** `src/application/amministrazione/`
+- **Archivio dati:** `src/persistence/`
+- **Simulatori:** `src/simulators/`
+
+Le cartelle contengono inizialmente un file `.gitkeep` e saranno popolate durante lo sviluppo dei rispettivi componenti.
+
+La cartella `src/app/` contiene il routing Next.js, mentre `src/lib/` contiene il codice già realizzato per il setup iniziale.
+
+La struttura è basata sulla versione 0.1 dell'SDD e potrà essere aggiornata in seguito alle decisioni architetturali del team.
 
 ---
 
