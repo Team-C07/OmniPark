@@ -11,7 +11,9 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "db:migrate": "node --env-file-if-exists=.env src/persistence/migrate.ts",
+    "db:reset": "node --env-file-if-exists=.env src/persistence/reset.ts"
   },
   "dependencies": {
     "next": "16.4.6",

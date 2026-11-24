@@ -43,7 +43,7 @@ La specifica è in `docs/rad/`: requisiti, casi d'uso, class diagram, sequence d
 - `src/application/<sottosistema>/`: logica dei casi d'uso, una cartella per sottosistema (`utenti-accessi`, `gestione-stalli`, `gestione-soste`, `wallet`, `segnalazioni`, `amministrazione`). Niente SQL: si passa dallo strato di persistenza.
 - `src/persistence/`: unico punto con SQL (connessione, migrazioni, accesso ai dati).
 - `src/simulators/`: simulatori di sensori, ANPR e pagamenti. Parlano con l'applicazione solo tramite le API.
-- `src/lib/`: codice provvisorio della configurazione iniziale. `src/lib/db.ts` e la route `src/app/api/health/db/route.ts` usano SQL fuori da `src/persistence/` e verranno spostati con i task del database. Non prenderli come modello e non aggiungere codice in `src/lib/`.
+- `src/lib/`: codice provvisorio della configurazione iniziale. non aggiungere codice provvisorio in `src/lib/`; tutto il codice SQL e le migrazioni risiedono in `src/persistence/`. Non prenderli come modello e non aggiungere codice in `src/lib/`.
 - I test stanno accanto al codice che verificano, con nome `*.test.ts` (configurazione in `vitest.config.ts`).
 
 ## Convenzioni
