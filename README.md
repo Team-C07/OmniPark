@@ -4,7 +4,7 @@ Prototipo di un servizio per la gestione della sosta urbana: mappa degli stalli 
 
 **Stack:** Next.js 16 · TypeScript · PostgreSQL 17 · Vitest · Node.js 26.13.0
 
-**Stato:** ambiente di sviluppo, documentazione di analisi e regole per gli agenti pronti; sottosistemi in sviluppo.
+**Stato:** ambiente di sviluppo, connessione database cloud con migrazioni versionate, documentazione di analisi e regole per gli agenti pronti; sottosistemi in sviluppo.
 
 ## Avvio rapido
 
@@ -31,18 +31,27 @@ Su Windows (PowerShell) al posto di `cp` si usa `Copy-Item .env.example .env`. L
 
 Il file `.env` contiene la variabile `DATABASE_URL`. Per ora il valore di esempio basta: lint, test e build non si collegano al database. La connessione a PostgreSQL 17 su Neon e i comandi del database arrivano con il task del database (OMP-31), che aggiornerà questa sezione. Il file `.env` è ignorato da Git e non va mai condiviso: nel repository c'è solo `.env.example`.
 
+## Database e migrazioni
+
+- **Connessione:** l'applicazione legge esclusivamente `DATABASE_URL` e utilizza un pool `pg` dimensionato per l'esecuzione serverless (senza ORM, con SQL esplicito in `src/persistence/ connessione PostgreSQL, migrazioni SQL e accesso ai dati
+  src/persistence/migrations/ file SQL numerati per l'evoluzione dello schema
+- **Migrazioni versionate (`npm run db:migrate`):** esegue in ordine numerico i file `.sql` in `src/persistence/migrations/` (es. `001_init.sql`) non ancora registrati in `schema_migrations`, garantendo idempotenza. Le migrazioni già integrate in `main` non vanno modificate: ogni variazione dello schema richiede un nuovo file numerato.
+- **Reset dello schema (`npm run db:reset`):** elimina e ricrea lo schema `public`. È consentito solo in sviluppo ed è bloccato automaticamente se l'ambiente o `DATABASE_URL` puntano alla produzione. Dopo un reset, rieseguire `npm run db:migrate`.
+
 ## Comandi
 
-| Comando                 | Cosa fa                                     |
-| :---------------------- | :------------------------------------------ |
-| `npm run dev`           | avvia l'app in sviluppo                     |
-| `npm run lint`          | analisi statica con ESLint                  |
-| `npm run format`        | formatta i file con Prettier                |
-| `npm run format:check`  | controlla la formattazione                  |
-| `npm test`              | esegue tutti i test una volta               |
-| `npm run test:watch`    | riesegue i test durante lo sviluppo         |
-| `npm run test:coverage` | test con report di copertura in `coverage/` |
-| `npm run build`         | build di produzione                         |
+| Comando                 | Cosa fa                                             |
+| :---------------------- | :-------------------------------------------------- |
+| `npm run dev`           | avvia l'app in sviluppo                             |
+| `npm run db:migrate`    | applica le migrazioni SQL non ancora eseguite       |
+| `npm run db:reset`      | elimina e ricrea lo schema `public` (solo sviluppo) |
+| `npm run lint`          | analisi statica con ESLint                          |
+| `npm run format`        | formatta i file con Prettier                        |
+| `npm run format:check`  | controlla la formattazione                          |
+| `npm test`              | esegue tutti i test una volta                       |
+| `npm run test:watch`    | riesegue i test durante lo sviluppo                 |
+| `npm run test:coverage` | test con report di copertura in `coverage/`         |
+| `npm run build`         | build di produzione                                 |
 
 ## Come si lavora
 
