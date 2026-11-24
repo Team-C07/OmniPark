@@ -1,0 +1,29 @@
+@startuml sd_sosta_5
+actor "Automobilista" as Auto
+boundary ":MappaStalli" as UI
+control ":ControlloPermesso" as Ctrl
+control ":ControlloAvvioSosta" as AvvioCtrl
+entity ":Stallo" as Stallo
+
+AvvioCtrl -> Ctrl : entry (UC_SOSTA_1 2.a4): richiediPermesso(stallo)
+Ctrl -> Stallo : entry: tipoDiStallo()
+Ctrl -> UI : entry: chiediDichiarazioneEFoto(permessoRichiesto)
+
+break [1.a1 L'Automobilista annulla]
+  Auto -> UI : 1.a1: annulla()
+  UI -> Ctrl : 1.a1.1: annulla()
+  Ctrl -> AvvioCtrl : 1.a1.2: permessoNonDichiarato()
+end
+
+loop [finché dichiarazione e foto non sono valide (2.a1)]
+  Auto -> UI : 1: dichiara(dichiarazione, foto)
+  UI -> Ctrl : 1.1: registraPermesso(dichiarazione, foto)
+  Ctrl -> Ctrl : 2.1: verifica(dichiarazione, foto)
+
+  opt [2.a1 Dichiarazione mancante o foto non valida]
+    Ctrl -> UI : 2.a1.1: segnalaPermessoNonValido()
+  end
+end
+
+Ctrl -> AvvioCtrl : 3.1: permessoDichiarato(dichiarazione, foto)
+@enduml

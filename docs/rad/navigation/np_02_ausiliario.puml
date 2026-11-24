@@ -1,0 +1,47 @@
+@startuml np_02_ausiliario
+skinparam state {
+  BackgroundColor<<schermata>> #1E6B4B
+  FontColor<<schermata>> White
+  BorderColor<<schermata>> #144D35
+
+  BackgroundColor<<pannello>> #E3F3EA
+  FontColor<<pannello>> #144D35
+  BorderColor<<pannello>> #1E6B4B
+
+  BackgroundColor<<errore>> #FDF1E6
+  FontColor<<errore>> #9A4A0A
+  BorderColor<<errore>> #D97724
+}
+
+state "MU_4\nMappa delle segnalazioni\nsegnalazioni e permessi da verificare · UC_OP_1" as Mappa <<schermata>>
+state "MU_4\nDettaglio della segnalazione\ntarga, stallo, motivo, stato, assegnatario\nprendi in carico · UC_OP_2" as Dettaglio <<pannello>>
+state "MU_4\nStato del pagamento\nsosta Attiva, Scaduta, Terminata o assente · UC_OP_3" as Pagamento <<pannello>>
+state "MU_4\nChiusura\nesito: accertata o non confermata · UC_OP_4" as Chiusura <<pannello>>
+state "MU_4\nPermesso da verificare\ntipo, targa, dichiarazione, foto · UC_OP_1" as Permesso <<pannello>>
+state "MU_4\nEsito della verifica\nconforme o non conforme · UC_OP_5" as EsitoVerifica <<pannello>>
+
+state "Già presa in carico\no già Chiusa" as ErrPresa <<errore>>
+state "Sosta non più Attiva\no esito già registrato" as ErrPermesso <<errore>>
+
+Mappa --> Dettaglio : seleziona segnalazione
+Dettaglio --> Dettaglio : prendi in carico
+Dettaglio --> Pagamento : verifica pagamento
+Pagamento --> Dettaglio : indietro
+
+Dettaglio --> Chiusura : chiudi
+Chiusura --> Dettaglio : annulla
+Chiusura --> Pagamento : verifica pagamento (punto di estensione)
+Pagamento --> Chiusura : torna alla chiusura
+Chiusura --> Mappa : conferma esito (segnalazione Chiusa)
+
+Mappa --> Permesso : seleziona permesso da verificare
+Permesso --> EsitoVerifica : verifica permesso
+EsitoVerifica --> Permesso : annulla
+EsitoVerifica --> Mappa : conferma esito (non conforme: segnalazione accertata)
+
+Dettaglio -[#D97724,dashed]-> ErrPresa : non disponibile
+ErrPresa -[#D97724,dashed]-> Mappa
+
+EsitoVerifica -[#D97724,dashed]-> ErrPermesso
+ErrPermesso -[#D97724,dashed]-> Mappa
+@enduml

@@ -1,0 +1,29 @@
+@startuml sd_stalli_1
+actor "Automobilista" as Auto
+boundary ":MappaStalli" as UI
+control ":ControlloMappaStalli" as Ctrl
+entity ":Stallo" as Stallo
+
+Auto -> UI : 1: mostraZona(zona)
+UI -> Ctrl : 1.1: richiediStalli(zona)
+Ctrl -> Stallo : 2.1: stalliNellaZona(zona)
+
+break [2.a1 Nella zona non ci sono stalli gestiti]
+  Ctrl -> UI : 2.a1.1: segnalaNessunoStallo()
+end
+
+break [2.a2 Dati degli stalli non disponibili]
+  Ctrl -> UI : 2.a2.1: segnalaDatiNonDisponibili()
+end
+
+Ctrl -> Stallo : 3.1: tipoEStato()
+Ctrl -> UI : 3.2: mostraStalli(stalli)
+
+loop [finché la mappa è aperta, a ogni variazione acquisita da UC_IOT_1 o UC_IOT_2]
+  Ctrl -> UI : 4.1: aggiornaStato(stallo, stato)
+
+  opt [4.a1 Collegamento agli aggiornamenti interrotto]
+    Ctrl -> UI : 4.a1.1: avvisaStatiNonAggiornati()
+  end
+end
+@enduml

@@ -1,0 +1,22 @@
+@startuml sd_stalli_2
+actor "Automobilista" as Auto
+boundary ":MappaStalli" as UI
+control ":ControlloSchedaStallo" as Ctrl
+entity ":Stallo" as Stallo
+entity ":Tariffa" as Tariffa
+
+Auto -> UI : 1: selezionaStallo(stallo)
+UI -> Ctrl : 1.1: richiediScheda(stallo)
+Ctrl -> Stallo : 2.1: tipoEStato()
+Ctrl -> Tariffa : 2.2: condizioni()
+
+break [2.a2 Dettagli dello stallo non disponibili]
+  Ctrl -> UI : 2.a2.1: segnalaDettagliNonDisponibili()
+end
+
+opt [2.a1 Stallo riservato a permesso esposto]
+  Ctrl -> Ctrl : 2.a1.1: permessoRichiesto(tipoDiStallo)
+end
+
+Ctrl -> UI : 2.3: mostraScheda(tipo, stato, costoOrario, orariDiVigenza, durataMassima, permesso)
+@enduml

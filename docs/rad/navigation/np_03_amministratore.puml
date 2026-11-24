@@ -1,0 +1,48 @@
+@startuml np_03_amministratore
+skinparam state {
+  BackgroundColor<<schermata>> #1E6B4B
+  FontColor<<schermata>> White
+  BorderColor<<schermata>> #144D35
+
+  BackgroundColor<<pannello>> #E3F3EA
+  FontColor<<pannello>> #144D35
+  BorderColor<<pannello>> #1E6B4B
+
+  BackgroundColor<<errore>> #FDF1E6
+  FontColor<<errore>> #9A4A0A
+  BorderColor<<errore>> #D97724
+}
+
+state "MU_5\nPanoramica degli enti\nelenco degli enti clienti · UC_ADM_1" as PanEnti <<schermata>>
+state "MU_5\nRiepilogo dell'ente\nstalli gestiti, soste attive, segnalazioni aperte" as Riepilogo <<pannello>>
+state "MU_6\nGestione degli Ausiliari\nelenco per ente · UC_ADM_2" as GestAus <<schermata>>
+state "MU_6\nConferma disattivazione" as ConfDis <<pannello>>
+state "MU_6\nModulo Ausiliario\nnome, cognome, email, ente" as ModuloAus <<pannello>>
+
+state "Nessun ente cliente" as ErrNessunEnte <<errore>>
+state "Riepilogo non disponibile" as ErrRiepilogo <<errore>>
+state "Ausiliario con segnalazioni\nPrese in carico" as ErrDisattivazione <<errore>>
+state "Dati incompleti o\nemail già usata" as ErrDati <<errore>>
+
+PanEnti --> Riepilogo : seleziona ente
+Riepilogo --> PanEnti : altro ente
+
+PanEnti --> GestAus : gestione Ausiliari
+GestAus --> PanEnti : panoramica enti
+
+GestAus --> ConfDis : elimina
+ConfDis --> GestAus : conferma (account disattivato) / annulla
+
+GestAus --> ModuloAus : crea o modifica
+ModuloAus --> GestAus : salva / annulla
+
+PanEnti -[#D97724,dashed]-> ErrNessunEnte
+Riepilogo -[#D97724,dashed]-> ErrRiepilogo
+ErrRiepilogo -[#D97724,dashed]-> PanEnti : torna all'elenco
+
+ConfDis -[#D97724,dashed]-> ErrDisattivazione
+ErrDisattivazione -[#D97724,dashed]-> GestAus
+
+ModuloAus -[#D97724,dashed]-> ErrDati
+ErrDati -[#D97724,dashed]-> ModuloAus : correggi
+@enduml

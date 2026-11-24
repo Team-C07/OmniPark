@@ -1,0 +1,25 @@
+@startuml scd_2_sosta
+skinparam state {
+  BackgroundColor White
+  BorderColor Black
+}
+
+[*] --> Attiva
+
+state Attiva {
+  Attiva : prolungamento / aggiornaScadenza()
+}
+
+state Scaduta {
+  Scaduta : entry / notificaScadenza()
+}
+
+state Terminata {
+  Terminata : entry / eliminaDichiarazioneEFoto()
+}
+
+Attiva --> Scaduta : at(orario di scadenza)
+Scaduta --> Terminata : terminaSosta
+Terminata --> [*]
+
+@enduml

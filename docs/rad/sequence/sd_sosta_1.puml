@@ -1,0 +1,62 @@
+@startuml sd_sosta_1
+actor "Automobilista" as Auto
+boundary ":MappaStalli" as UI
+control ":ControlloAvvioSosta" as Ctrl
+entity ":Stallo" as Stallo
+entity ":Tariffa" as Tariffa
+entity ":Veicolo" as Veicolo
+entity ":Wallet virtuale" as Wallet
+
+loop [finché la durata supera la durata massima (2.a2)]
+  Auto -> UI : 1: avviaSosta(stallo, targa, durata)
+  UI -> Ctrl : 1.1: avviaSosta(stallo, targa, durata)
+  Ctrl -> Stallo : 2.1: stato()
+  Ctrl -> Tariffa : 2.2: durataMassima()
+
+  opt [2.a2 Durata oltre la durata massima]
+    Ctrl -> UI : 2.a2.1: segnalaDurataEccessiva(durataMassima)
+  end
+end
+
+break [2.a1 Lo stallo non è Occupato]
+  Ctrl -> UI : 2.a1.1: segnalaAvvioNonConsentito(stato)
+end
+
+Ctrl -> Veicolo : 2.3: sostaAttiva()
+
+break [2.a3 Per la targa esiste già una sosta Attiva]
+  Ctrl -> UI : 2.a3.1: segnalaSostaGiàAttiva()
+end
+
+opt [2.a4 Stallo riservato a permesso esposto]
+  ref over Auto, UI, Ctrl : SD_SOSTA_5 — punto di estensione «Permesso dello stallo riservato».\nSe non si conclude, la sosta non è avviata
+end
+
+Ctrl -> Tariffa : 3.1: costoOrarioEOrariDiVigenza()
+Ctrl -> Ctrl : 3.2: calcolaImporto(durata, tipoDiStallo)
+Ctrl -> UI : 3.3: mostraImporto(importo, orarioDiScadenza)
+
+break [4.a1 L'Automobilista annulla]
+  Auto -> UI : 4.a1: annulla()
+end
+
+loop [finché il credito non basta e l'Automobilista ricarica (5.a1)]
+  Auto -> UI : 4: conferma()
+  UI -> Ctrl : 4.1: conferma()
+  Ctrl -> Wallet : 5.1: saldo()
+
+  opt [5.a1 Credito insufficiente]
+    Ctrl -> UI : 5.a1.1: proponiRicarica(importo)
+    ref over Auto, UI, Ctrl, Wallet : SD_WALLET_1 — punto di estensione «Credito insufficiente».\nSe l'Automobilista rinuncia, la sosta non è avviata
+  end
+end
+
+create entity ":Movimento del wallet" as Mov
+Ctrl --> Mov : 5.2: <<create>>(addebito, importo)
+Ctrl -> Wallet : 5.3: registra(movimento)
+create entity ":Sosta" as Sosta
+Ctrl --> Sosta : 6.1: <<create>>(automobilista, veicolo, stallo, orari, dichiarazione, foto)
+Ctrl -> Mov : 6.2: addebitatoPer(sosta)
+Ctrl -> Stallo : 6.3: impostaStato(Non disponibile)
+Ctrl -> UI : 6.4: confermaSosta(orarioDiScadenza)
+@enduml

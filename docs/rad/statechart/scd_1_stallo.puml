@@ -1,0 +1,33 @@
+@startuml scd_1_stallo
+skinparam state {
+  BackgroundColor White
+  BorderColor Black
+}
+
+[*] --> Sconosciuto
+
+state Sconosciuto
+state Libero {
+  Libero : entry / terminaSosta()
+}
+state Occupato
+state "Non disponibile" as NonDisponibile {
+  NonDisponibile : rilevazioneSensore / registraRilevazione()
+}
+
+Sconosciuto --> Libero : rilevazioneSensore [nessun veicolo presente]
+Sconosciuto --> Occupato : rilevazioneSensore [veicolo presente]
+
+Libero --> Occupato : rilevazioneSensore [veicolo presente]
+Occupato --> Libero : rilevazioneSensore [nessun veicolo presente]
+
+Libero --> Sconosciuto : when(nessuna rilevazione da più di 60 s)
+Occupato --> Sconosciuto : when(nessuna rilevazione da più di 60 s)
+
+Occupato --> NonDisponibile : avvioSosta
+
+NonDisponibile --> Occupato : scadenzaSosta [veicolo presente]
+NonDisponibile --> Libero : scadenzaSosta [nessun veicolo presente]
+NonDisponibile --> Sconosciuto : scadenzaSosta [nessuna rilevazione da più di 60 s]
+
+@enduml

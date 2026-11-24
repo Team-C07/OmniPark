@@ -1,0 +1,25 @@
+@startuml sd_op_3
+actor "Ausiliario del Traffico" as Aus
+boundary ":MappaSegnalazioni" as UI
+control ":ControlloVerificaPagamento" as Ctrl
+entity ":Segnalazione" as Segn
+entity ":Stallo" as Stallo
+entity ":Sosta" as Sosta
+
+Aus -> UI : 1: verificaPagamento(segnalazione)
+UI -> Ctrl : 1.1: verificaPagamento(segnalazione)
+note over Ctrl, Segn : da UC_OP_4 (punto «Verifica del pagamento») il flusso parte da 2.1 e al termine torna a SD_OP_4
+Ctrl -> Segn : 2.1: targaEStallo()
+Ctrl -> Stallo : 2.2: sostaPer(targa)
+
+break [2.a1 Informazioni sul pagamento non disponibili]
+  Ctrl -> UI : 2.a1.1: segnalaPagamentoNonDisponibile()
+end
+
+alt [esiste una sosta per la targa sullo stallo]
+  Ctrl -> Sosta : 3.1: statoEOrari()
+  Ctrl -> UI : 3.2: mostraStatoSosta(stato, avvio, scadenza)
+else [nessuna sosta]
+  Ctrl -> UI : 3.2: mostraNessunaSosta()
+end
+@enduml

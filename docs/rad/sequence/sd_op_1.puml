@@ -1,0 +1,40 @@
+@startuml sd_op_1
+actor "Ausiliario del Traffico" as Aus
+boundary ":MappaSegnalazioni" as UI
+control ":ControlloSegnalazioni" as Ctrl
+entity ":Ausiliario del Traffico" as AusEnt
+entity ":Ente preposto" as Ente
+entity ":Segnalazione" as Segn
+entity ":Stallo" as Stallo
+entity ":Sosta" as Sosta
+
+Aus -> UI : 1: apriMappaSegnalazioni()
+UI -> Ctrl : 1.1: richiediSegnalazioni()
+Ctrl -> AusEnt : 2.1: ente()
+Ctrl -> Ente : 2.2: segnalazioniNonChiuse()
+Ctrl -> Ente : 2.3: permessiDaVerificare()
+
+break [2.a1 Nessuna segnalazione né permesso da verificare]
+  Ctrl -> UI : 2.a1.1: segnalaNessunaSegnalazione()
+end
+
+break [2.a2 Segnalazioni non disponibili]
+  Ctrl -> UI : 2.a2.1: segnalaNonDisponibili()
+end
+
+Ctrl -> UI : 2.4: mostraSegnalazioniEPermessi(segnalazioni, permessi)
+
+alt [3.a1 L'Ausiliario seleziona uno stallo con permesso da verificare]
+  Aus -> UI : 3.a1: selezionaPermesso(stallo)
+  UI -> Ctrl : 3.a1.1: richiediPermesso(stallo)
+  Ctrl -> Stallo : 3.a1.2: tipoDiStallo()
+  Ctrl -> Sosta : 3.a1.3: targaDichiarazioneEFoto()
+  Ctrl -> UI : 3.a1.4: mostraPermesso(tipo, targa, dichiarazione, foto)
+else [l'Ausiliario seleziona una segnalazione]
+  Aus -> UI : 3: selezionaSegnalazione(segnalazione)
+  UI -> Ctrl : 3.1: richiediDettaglio(segnalazione)
+  Ctrl -> Segn : 4.1: dettaglio()
+  Ctrl -> Stallo : 4.2: tipoDiStallo()
+  Ctrl -> UI : 4.3: mostraDettaglio(targa, stallo, tipo, motivo, dataOra, stato, assegnatario)
+end
+@enduml

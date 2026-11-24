@@ -1,0 +1,60 @@
+@startuml ucd_automobilista_sistema
+left to right direction
+
+actor "Automobilista" as Auto
+actor "Ausiliario del Traffico" as Ausiliario
+actor "Amministratore" as Admin
+actor "Sensore IoT simulato" as IoT <<system>>
+actor "App di mappe esterna" as Maps <<system>>
+actor "Time" as Time
+
+package "AUTH - Autenticazione" {
+  usecase "UC_AUTH_1\nRegistrare un account Automobilista" as UC_AUTH_1
+  usecase "UC_AUTH_4\nAccedere al sistema e uscirne" as UC_AUTH_4
+  usecase "UC_AUTH_5\nGestire le targhe del profilo" as UC_AUTH_5
+}
+
+package "NAV - Stalli e navigazione" {
+  usecase "UC_STALLI_1\nVisualizzare la mappa degli stalli" as UC_STALLI_1
+  usecase "UC_STALLI_2\nConsultare tariffe e condizioni di uno stallo" as UC_STALLI_2
+  usecase "UC_STALLI_3\nSalvare uno stallo o un'area tra i preferiti" as UC_STALLI_3
+  usecase "UC_STALLI_5\nConsultare lo stato dei preferiti" as UC_STALLI_5
+  usecase "UC_NAV_1\nAvviare la navigazione verso uno stallo" as UC_NAV_1
+  usecase "UC_IOT_1\nAcquisire una rilevazione di occupazione" as UC_IOT_1
+  usecase "UC_IOT_2\nRilevare l'assenza di rilevazioni" as UC_IOT_2
+}
+
+package "SOSTA e WALLET" {
+  usecase "UC_SOSTA_1\nAvviare la sosta in uno stallo occupato\n--\nextension points:\nPermesso dello stallo riservato\nCredito insufficiente" as UC_SOSTA_1
+  usecase "UC_SOSTA_2\nProlungare una sosta attiva\n--\nextension points:\nCredito insufficiente" as UC_SOSTA_2
+  usecase "UC_SOSTA_5\nDichiarare il permesso per uno stallo riservato" as UC_SOSTA_5
+  usecase "UC_SOSTA_7\nFar scadere una sosta" as UC_SOSTA_7
+  usecase "UC_WALLET_1\nRicaricare il wallet virtuale" as UC_WALLET_1
+  usecase "UC_WALLET_3\nConsultare saldo e cronologia del wallet" as UC_WALLET_3
+
+  UC_SOSTA_5 .> UC_SOSTA_1 : <<extend>>
+  UC_WALLET_1 .> UC_SOSTA_1 : <<extend>>
+  UC_WALLET_1 .> UC_SOSTA_2 : <<extend>>
+}
+
+Auto -- UC_AUTH_1
+Auto -- UC_AUTH_4
+Auto -- UC_AUTH_5
+Ausiliario -- UC_AUTH_4
+Admin -- UC_AUTH_4
+
+Auto -- UC_STALLI_1
+Auto -- UC_STALLI_2
+Auto -- UC_STALLI_3
+Auto -- UC_STALLI_5
+Auto -- UC_NAV_1
+UC_NAV_1 -- Maps
+UC_IOT_1 -- IoT
+UC_IOT_2 -- Time
+
+Auto -- UC_SOSTA_1
+Auto -- UC_SOSTA_2
+Auto -- UC_WALLET_1
+Auto -- UC_WALLET_3
+UC_SOSTA_7 -- Time
+@enduml

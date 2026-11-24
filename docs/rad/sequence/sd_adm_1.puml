@@ -1,0 +1,28 @@
+@startuml sd_adm_1
+actor "Amministratore" as Adm
+boundary ":PanoramicaEnti" as UI
+control ":ControlloRiepilogoEnti" as Ctrl
+entity ":Ente preposto" as Ente
+
+Adm -> UI : 1: richiediRiepilogo()
+UI -> Ctrl : 1.1: richiediEnti()
+Ctrl -> Ente : 2.1: enti()
+
+break [2.a1 Non ci sono enti clienti]
+  Ctrl -> UI : 2.a1.1: segnalaNessunEnte()
+end
+
+Ctrl -> UI : 2.2: mostraEnti(enti)
+
+loop [finché l'Amministratore seleziona un altro ente (4.a2)]
+  Adm -> UI : 3: selezionaEnte(ente)
+  UI -> Ctrl : 3.1: richiediRiepilogo(ente)
+  Ctrl -> Ente : 4.1: riepilogo()
+
+  break [4.a1 Informazioni dell'ente non disponibili]
+    Ctrl -> UI : 4.a1.1: segnalaRiepilogoNonDisponibile()
+  end
+
+  Ctrl -> UI : 4.2: mostraRiepilogo(stalliGestiti, sosteAttive, segnalazioniAperte)
+end
+@enduml

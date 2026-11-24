@@ -1,0 +1,64 @@
+@startuml np_01_automobilista
+skinparam state {
+  BackgroundColor<<schermata>> #1E6B4B
+  FontColor<<schermata>> White
+  BorderColor<<schermata>> #144D35
+
+  BackgroundColor<<pannello>> #E3F3EA
+  FontColor<<pannello>> #144D35
+  BorderColor<<pannello>> #1E6B4B
+
+  BackgroundColor<<system>> #EFEFEF
+  FontColor<<system>> #333333
+  BorderColor<<system>> #777777
+
+  BackgroundColor<<errore>> #FDF1E6
+  FontColor<<errore>> #9A4A0A
+  BorderColor<<errore>> #D97724
+}
+
+state "MU_2\nMappa degli stalli\nstalli, tipo e stato · UC_STALLI_1" as Mappa <<schermata>>
+state "MU_2\nPreferiti\nstalli e aree con stato · UC_STALLI_5" as Preferiti <<pannello>>
+state "MU_2\nScheda dello stallo e avvio della sosta\ntariffe e condizioni · 2 · targa e durata, importo\nUC_STALLI_2, UC_SOSTA_1" as Scheda <<pannello>>
+state "MU_2\nDichiarazione e foto del permesso\nsolo stalli riservati · UC_SOSTA_5" as Permesso <<pannello>>
+state "MU_2\nSosta in corso\nstato e orario di scadenza" as SostaCorso <<schermata>>
+state "MU_2\nProlungamento\ntempo aggiuntivo e importo · UC_SOSTA_2" as Prolungamento <<pannello>>
+
+state "MU_3\nTarghe\naggiungi, rimuovi · UC_AUTH_5" as Targhe <<pannello>>
+state "MU_3\nWallet\nsaldo e cronologia · UC_WALLET_3" as Wallet <<schermata>>
+state "MU_3\nRicarica simulata\n5, 10 o 20 € · UC_WALLET_1" as Ricarica <<pannello>>
+
+state "<<system>>\nApp di mappe esterna\nUC_NAV_1" as AppMappe <<system>>
+state "Credito insufficiente" as ErrCredito <<errore>>
+state "Durata oltre il massimo,\ntarga già in sosta,\nstallo non Occupato" as ErrAvvio <<errore>>
+
+Mappa --> Preferiti : preferiti
+Preferiti --> Mappa : seleziona preferito
+
+Mappa --> Scheda : 1 · seleziona stallo
+Scheda --> Scheda : salva tra i preferiti (UC_STALLI_3)
+Scheda --> AppMappe : naviga
+
+Scheda --> Permesso : [stallo riservato]
+Permesso --> Scheda : permesso dichiarato
+
+Scheda --> SostaCorso : 3 · conferma e paga
+Mappa --> SostaCorso : le mie soste
+
+SostaCorso --> Prolungamento : prolunga
+Prolungamento --> SostaCorso : conferma
+
+Mappa --> Targhe : profilo
+Targhe --> Wallet : scheda wallet
+Wallet --> Ricarica : ricarica
+Ricarica --> Wallet : conferma
+
+Scheda -[#D97724,dashed]-> ErrAvvio : controlli non superati
+ErrAvvio -[#D97724,dashed]-> Scheda : correggi
+
+Scheda -[#D97724,dashed]-> ErrCredito
+Prolungamento -[#D97724,dashed]-> ErrCredito
+ErrCredito -[#D97724,dashed]-> Ricarica : ricarica
+Ricarica -[#D97724,dashed]-> Scheda : torna alla conferma
+Ricarica -[#D97724,dashed]-> Prolungamento : torna alla conferma
+@enduml

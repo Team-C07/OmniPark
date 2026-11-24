@@ -1,0 +1,57 @@
+@startuml sd_adm_2
+actor "Amministratore" as Adm
+boundary ":SchermataAusiliari" as UI
+control ":ControlloAccountAusiliari" as Ctrl
+entity ":Ausiliario del Traffico" as AusEnt
+entity ":Utente" as Utente
+
+Adm -> UI : 1: apriGestioneAusiliari()
+UI -> Ctrl : 1.1: richiediAusiliari()
+Ctrl -> AusEnt : 2.1: ausiliariPerEnte()
+Ctrl -> UI : 2.2: mostraElenco(ausiliari)
+note over UI, AusEnt : 2.a1: senza Ausiliari l'elenco è vuoto e si prosegue con la sola creazione
+
+alt [3.a1 L'Amministratore elimina un account]
+  Adm -> UI : 3.a1: elimina(ausiliario)
+  UI -> Ctrl : 3.a1.1: elimina(ausiliario)
+  Ctrl -> UI : 3.a1.2: chiediConferma()
+  Adm -> UI : 3.a1.3: conferma()
+  UI -> Ctrl : 3.a1.4: conferma()
+  Ctrl -> AusEnt : 3.a1.5: segnalazioniPreseInCarico()
+
+  alt [3.a2 L'Ausiliario ha segnalazioni Prese in carico]
+    Ctrl -> UI : 3.a2.1: segnalaDisattivazioneNonConsentita()
+  else [nessuna segnalazione Presa in carico]
+    Ctrl -> AusEnt : 3.a1.6: disattiva()
+    Ctrl -> UI : 3.a1.7: aggiornaElenco()
+  end
+else [l'Amministratore crea o modifica un account]
+  Adm -> UI : 3: creaOModifica(ausiliario)
+  UI -> Ctrl : 3.1: apriModulo(ausiliario)
+  Ctrl -> UI : 4.1: mostraModulo(dati)
+
+  break [5.a1 L'Amministratore annulla]
+    Adm -> UI : 5.a1: annulla()
+  end
+
+  loop [finché i dati non sono completi e l'email è libera (6.a1)]
+    Adm -> UI : 5: inserisciDati(nome, cognome, email, ente)
+    UI -> Ctrl : 5.1: salva(nome, cognome, email, ente)
+    Ctrl -> Ctrl : 6.1: verificaCompletezza(dati)
+    Ctrl -> Utente : 6.2: emailRegistrata(email)
+
+    opt [6.a1 Dati incompleti o email già usata]
+      Ctrl -> UI : 6.a1.1: segnalaDatiNonValidi()
+    end
+  end
+
+  alt [modifica]
+    Ctrl -> AusEnt : 7.1: aggiorna(nome, cognome, email, ente)
+  else [creazione]
+    create entity "nuovo:Ausiliario del Traffico" as NuovoAus
+    Ctrl --> NuovoAus : 7.1: <<create>>(nome, cognome, email, ente)
+  end
+
+  Ctrl -> UI : 7.2: confermaEAggiornaElenco()
+end
+@enduml

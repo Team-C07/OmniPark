@@ -1,0 +1,40 @@
+@startuml sd_auth_5
+actor "Automobilista" as Auto
+boundary ":SchermataProfilo" as UI
+control ":ControlloTarghe" as Ctrl
+entity ":Automobilista" as AutoEnt
+entity ":Veicolo" as Veicolo
+
+Auto -> UI : 1: apriTarghe()
+UI -> Ctrl : 1.1: richiediTarghe()
+Ctrl -> AutoEnt : 2.1: targhe()
+Ctrl -> UI : 2.2: mostraTarghe(targhe)
+
+alt [3.a1 L'Automobilista rimuove una targa]
+  Auto -> UI : 3.a1: rimuovi(targa)
+  UI -> Ctrl : 3.a1.1: rimuovi(targa)
+  Ctrl -> AutoEnt : 3.a1.2: numeroDiTarghe()
+  Ctrl -> Veicolo : 3.a1.3: sostaAttiva()
+
+  alt [3.a2 Unica targa del profilo o targa con sosta Attiva]
+    Ctrl -> UI : 3.a2.1: segnalaRimozioneNonConsentita(motivo)
+  else [rimozione consentita]
+    Ctrl -> AutoEnt : 3.a1.4: rimuovi(veicolo)
+    Ctrl -> UI : 3.a1.5: aggiornaElenco(targhe)
+  end
+else [l'Automobilista aggiunge una targa]
+  loop [finché la targa non è valida e nuova (4.a1)]
+    Auto -> UI : 3: aggiungi(targa)
+    UI -> Ctrl : 3.1: aggiungi(targa)
+    Ctrl -> Ctrl : 4.1: verificaFormato(targa)
+    Ctrl -> AutoEnt : 4.2: haTarga(targa)
+
+    opt [4.a1 Targa non valida o già nel profilo]
+      Ctrl -> UI : 4.a1.1: segnalaTargaNonValida()
+    end
+  end
+
+  Ctrl -> Veicolo : 5.1: associaA(automobilista)
+  Ctrl -> UI : 5.2: aggiornaElenco(targhe)
+end
+@enduml

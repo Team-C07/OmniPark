@@ -1,0 +1,27 @@
+@startuml sd_wallet_1
+actor "Automobilista" as Auto
+boundary ":SchermataProfilo" as UI
+control ":ControlloRicarica" as Ctrl
+entity ":Wallet virtuale" as Wallet
+
+Auto -> UI : 1: scegliImporto(importo)
+UI -> Ctrl : 1.1: richiediRicarica(importo)
+Ctrl -> UI : 2.1: mostraRiepilogo(importo)
+
+break [3.a1 L'Automobilista annulla]
+  Auto -> UI : 3.a1: annulla()
+  UI -> Ctrl : 3.a1.1: annulla()
+end
+
+Auto -> UI : 3: conferma()
+UI -> Ctrl : 3.1: conferma()
+create entity ":Movimento del wallet" as Mov
+Ctrl --> Mov : 4.1: <<create>>(ricarica, importo)
+Ctrl -> Wallet : 4.2: registra(movimento)
+Ctrl -> Wallet : 4.3: saldo()
+Ctrl -> UI : 4.4: mostraSaldo(saldo)
+
+opt [ricarica avviata da UC_SOSTA_1 o UC_SOSTA_2 (punto «Credito insufficiente»)]
+  note over Auto, Wallet : si torna al passo 4 di SD_SOSTA_1 o SD_SOSTA_2
+end
+@enduml

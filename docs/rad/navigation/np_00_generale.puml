@@ -1,0 +1,42 @@
+@startuml np_00_generale
+skinparam state {
+  BackgroundColor<<schermata>> #1E6B4B
+  FontColor<<schermata>> White
+  BorderColor<<schermata>> #144D35
+
+  BackgroundColor<<pannello>> #E3F3EA
+  FontColor<<pannello>> #144D35
+  BorderColor<<pannello>> #1E6B4B
+
+  BackgroundColor<<errore>> #FDF1E6
+  FontColor<<errore>> #9A4A0A
+  BorderColor<<errore>> #D97724
+}
+
+title NP_00 · Navigation Path generale\nDa ogni schermata dopo l'accesso: menu utente → esci → MU_1 (UC_AUTH_4)
+
+state "MU_1\nAccesso\nemail e password" as Accesso <<schermata>>
+state "MU_1\nRegistrazione\nemail, password, targa · UC_AUTH_1" as Registrazione <<pannello>>
+state "MU_2\nMappa degli stalli\nhome Automobilista" as Mappa <<schermata>>
+state "MU_3\nProfilo\ntarghe e wallet" as Profilo <<schermata>>
+state "MU_4\nMappa delle segnalazioni\nhome Ausiliario del Traffico" as MappaSegn <<schermata>>
+state "MU_5\nPanoramica degli enti\nhome Amministratore" as Panoramica <<schermata>>
+state "MU_6\nGestione degli Ausiliari" as GestAus <<schermata>>
+state "Credenziali errate\no account disattivato" as ErrAccesso <<errore>>
+
+[*] --> Accesso : apertura di OmniPark
+Accesso --> Registrazione : nuovo utente
+Registrazione --> Accesso : annulla
+Registrazione --> Mappa : registrazione completata
+
+Accesso --> Mappa : accesso [Automobilista]
+Accesso --> MappaSegn : accesso [Ausiliario]
+Accesso --> Panoramica : accesso [Amministratore]
+Accesso -[#D97724,dashed]-> ErrAccesso : accesso negato
+ErrAccesso -[#D97724,dashed]-> Accesso : riprova
+
+Mappa --> Profilo : profilo
+Profilo --> Mappa : mappa
+Panoramica --> GestAus : gestione Ausiliari
+GestAus --> Panoramica : panoramica enti
+@enduml
