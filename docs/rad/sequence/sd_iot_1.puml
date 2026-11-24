@@ -1,0 +1,38 @@
+@startuml sd_iot_1
+actor "Sensore IoT simulato" as IoT <<system>>
+boundary ":InterfacciaSensori" as IoTUI
+control ":ControlloRilevazioni" as Ctrl
+entity ":Stallo" as Stallo
+entity ":Sosta" as Sosta
+boundary ":MappaStalli" as UI
+
+IoT -> IoTUI : 1: rilevazione(stallo, presenza, dataOra)
+IoTUI -> Ctrl : 1.1: registraRilevazione(stallo, presenza, dataOra)
+Ctrl -> Ctrl : 2.1: verificaCompletezza(rilevazione)
+Ctrl -> Stallo : 2.2: esiste(stallo)
+
+break [2.a1 Rilevazione incompleta o stallo inesistente]
+  Ctrl -> Ctrl : 2.a1.1: scarta(rilevazione)
+end
+
+Ctrl -> Stallo : 3.1: registraRilevazione(presenza, dataOra)
+Ctrl -> Stallo : 3.2: sostaInCorso()
+
+break [3.a1 Sullo stallo c'è una sosta Attiva]
+  note over Ctrl, Stallo : lo stallo resta Non disponibile fino alla scadenza (RF_SOSTA_6)
+end
+
+opt [3.a2 Nessun veicolo e sosta Scaduta]
+  Ctrl -> Sosta : 3.a2.1: impostaStato(Terminata)
+  Ctrl -> Sosta : 3.a2.2: eliminaDichiarazioneEFoto()
+end
+
+alt [veicolo presente]
+  Ctrl -> Stallo : 3.3: impostaStato(Occupato)
+else [nessun veicolo]
+  Ctrl -> Stallo : 3.3: impostaStato(Libero)
+end
+
+note over Ctrl, Stallo : 3.a3: uno stallo Sconosciuto torna allo stato rilevato con il messaggio 3.3
+Ctrl -> UI : 4.1: aggiornaStato(stallo, stato)
+@enduml

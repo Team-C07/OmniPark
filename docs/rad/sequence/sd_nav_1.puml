@@ -1,0 +1,20 @@
+@startuml sd_nav_1
+actor "Automobilista" as Auto
+boundary ":MappaStalli" as UI
+control ":ControlloNavigazione" as Ctrl
+entity ":Stallo" as Stallo
+boundary ":InterfacciaMappeEsterne" as ExtUI
+actor "App di mappe esterna" as Maps <<system>>
+
+Auto -> UI : 1: naviga(stallo)
+UI -> Ctrl : 1.1: avviaNavigazione(stallo)
+Ctrl -> Stallo : 2.1: posizione()
+Ctrl -> ExtUI : 2.2: apri(posizione)
+
+break [2.a1 L'App di mappe esterna non si apre]
+  ExtUI --> Ctrl : 2.a1.1: aperturaNonRiuscita()
+  Ctrl -> UI : 2.a1.2: mostraIndirizzo(posizione)
+end
+
+ExtUI -> Maps : 2.3: mostraPosizione(posizione)
+@enduml

@@ -1,0 +1,36 @@
+@startuml sd_auth_1
+actor "Automobilista" as Auto
+boundary ":SchermataAccesso" as UI
+control ":ControlloRegistrazione" as Ctrl
+entity ":Utente" as Utente
+entity ":Veicolo" as Veicolo
+boundary ":MappaStalli" as Mappa
+
+break [1.a1 L'utente annulla la registrazione]
+  Auto -> UI : 1.a1: annulla()
+end
+
+loop [finché i dati non sono completi e validi (2.a1, 2.a2)]
+  Auto -> UI : 1: registrati(email, password, targa)
+  UI -> Ctrl : 1.1: registra(email, password, targa)
+  Ctrl -> Ctrl : 2.1: verificaCompletezza(email, password, targa)
+  Ctrl -> Utente : 2.2: emailRegistrata(email)
+  Ctrl -> Ctrl : 2.3: verificaTarga(targa)
+
+  opt [2.a1 Email già registrata]
+    Ctrl -> UI : 2.a1.1: segnalaEmailRegistrata()
+  end
+
+  opt [2.a2 Dati incompleti o targa non valida]
+    Ctrl -> UI : 2.a2.1: segnalaCampoDaCorreggere(campo)
+  end
+end
+
+create entity ":Automobilista" as AutoEnt
+Ctrl --> AutoEnt : 3.1: <<create>>(email, password)
+Ctrl -> Veicolo : 3.2: associaA(automobilista)
+create entity ":Wallet virtuale" as Wallet
+Ctrl --> Wallet : 3.3: <<create>>(automobilista)
+Ctrl -> Ctrl : 3.4: avviaSessione(automobilista)
+Ctrl -> Mappa : 3.5: mostraMappa()
+@enduml

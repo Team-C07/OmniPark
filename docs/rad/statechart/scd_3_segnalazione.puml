@@ -1,0 +1,25 @@
+@startuml scd_3_segnalazione
+skinparam state {
+  BackgroundColor White
+  BorderColor Black
+}
+
+state scelta <<choice>>
+[*] --> scelta
+
+state Aperta {
+  Aperta : entry / rendiDisponibileAgliAusiliari()
+}
+state "Presa in carico" as PresaInCarico
+state Chiusa
+
+scelta --> Aperta : [generata da una lettura ANPR]
+scelta --> Chiusa : [generata da una verifica del permesso non conforme]\n/ assegnaAusiliario(), registraEsito(sosta irregolare accertata)
+
+Aperta --> PresaInCarico : presaInCarico / assegnaAusiliario()
+PresaInCarico --> Chiusa : chiusura / registraEsito()
+Aperta --> Chiusa : chiusura / assegnaAusiliario(), registraEsito()
+
+Chiusa --> [*]
+
+@enduml

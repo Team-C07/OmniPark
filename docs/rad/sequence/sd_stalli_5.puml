@@ -1,0 +1,35 @@
+@startuml sd_stalli_5
+actor "Automobilista" as Auto
+boundary ":MappaStalli" as UI
+control ":ControlloPreferiti" as Ctrl
+entity ":Automobilista" as AutoEnt
+entity ":Area di sosta" as Area
+entity ":Stallo" as Stallo
+
+Auto -> UI : 1: apriPreferiti()
+UI -> Ctrl : 1.1: richiediPreferiti()
+Ctrl -> AutoEnt : 2.1: preferiti()
+
+break [2.a1 Nessun preferito]
+  Ctrl -> UI : 2.a1.1: segnalaNessunPreferito()
+end
+
+loop [per ogni area di sosta preferita]
+  Ctrl -> Area : 2.2: stalli()
+end
+
+loop [per ogni stallo preferito o di un'area preferita]
+  Ctrl -> Stallo : 2.3: stato()
+end
+
+break [2.a2 Stato dei preferiti non disponibile]
+  Ctrl -> UI : 2.a2.1: segnalaStatoNonDisponibile()
+end
+
+Ctrl -> UI : 2.4: mostraPreferiti(stalli, aree, stalliLiberiSulTotale)
+
+Auto -> UI : 3: selezionaPreferito(preferito)
+UI -> Ctrl : 3.1: selezionaPreferito(preferito)
+Ctrl -> Stallo : 4.1: posizione()
+Ctrl -> UI : 4.2: centraMappa(posizione)
+@enduml

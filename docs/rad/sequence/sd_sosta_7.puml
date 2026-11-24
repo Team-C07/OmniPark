@@ -1,0 +1,23 @@
+@startuml sd_sosta_7
+actor "Time" as Time
+control ":ControlloScadenza" as Ctrl
+entity ":Sosta" as Sosta
+entity ":Stallo" as Stallo
+boundary ":MappaStalli" as UI
+
+Time -> Ctrl : 1: scadenzaRaggiunta(sosta)
+Ctrl -> Sosta : 2.1: impostaStato(Scaduta)
+Ctrl -> Stallo : 3.1: ultimaRilevazione()
+
+alt [3.a1 L'ultima rilevazione indica lo stallo libero]
+  Ctrl -> Stallo : 3.a1.1: impostaStato(Libero)
+  Ctrl -> Sosta : 3.a1.2: impostaStato(Terminata)
+  Ctrl -> Sosta : 3.a1.3: eliminaDichiarazioneEFoto()
+else [veicolo presente]
+  Ctrl -> Stallo : 3.2: impostaStato(Occupato)
+else [nessuna rilevazione da oltre 60 secondi]
+  Ctrl -> Stallo : 3.2: impostaStato(Sconosciuto)
+end
+
+Ctrl -> UI : 3.3: aggiornaStato(stallo, stato)
+@enduml

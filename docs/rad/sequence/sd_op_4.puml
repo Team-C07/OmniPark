@@ -1,0 +1,41 @@
+@startuml sd_op_4
+actor "Ausiliario del Traffico" as Aus
+boundary ":MappaSegnalazioni" as UI
+control ":ControlloChiusura" as Ctrl
+entity ":Segnalazione" as Segn
+
+Aus -> UI : 1: chiudi(segnalazione)
+UI -> Ctrl : 1.1: chiudi(segnalazione)
+Ctrl -> Segn : 2.1: statoEAssegnatario()
+
+break [2.a1 Presa in carico da un altro Ausiliario o già Chiusa]
+  Ctrl -> UI : 2.a1.1: segnalaNonChiudibile()
+end
+
+Ctrl -> Segn : 2.2: targaStalloEMotivo()
+Ctrl -> UI : 2.3: mostraSegnalazione(targa, stallo, motivo)
+
+opt [2.a2 L'Ausiliario chiede di verificare il pagamento]
+  ref over Aus, UI, Ctrl, Segn : SD_OP_3 — punto di estensione «Verifica del pagamento»
+end
+
+break [3.a1 L'Ausiliario annulla]
+  Aus -> UI : 3.a1: annulla()
+end
+
+loop [finché l'esito non è valido (3.a2)]
+  Aus -> UI : 3: indicaEsito(esito)
+  UI -> Ctrl : 3.1: registraEsito(esito)
+
+  opt [3.a2 Esito non indicato o non previsto]
+    Ctrl -> UI : 3.a2.1: segnalaEsitoNonValido()
+  end
+end
+
+opt [la segnalazione è Aperta]
+  Ctrl -> Segn : 4.1: assegnaA(ausiliario)
+end
+
+Ctrl -> Segn : 4.2: chiudi(esito, dataOra)
+Ctrl -> UI : 4.3: confermaChiusura()
+@enduml

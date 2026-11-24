@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(gh issue:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh api:*)",
+      "Bash(git push origin main:*)",
+      "Bash(git push --force:*)",
+      "Read(./.env)",
+      "Read(./.env.local)",
+      "Read(./.env.development.local)",
+      "Read(./.env.production.local)"
+    ],
+    "ask": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(npm install:*)",
+      "Bash(npm i:*)",
+      "Bash(npm uninstall:*)"
+    ]
+  }
+}

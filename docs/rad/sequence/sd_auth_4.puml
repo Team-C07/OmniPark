@@ -1,0 +1,46 @@
+@startuml sd_auth_4
+actor "Utente" as User
+boundary ":SchermataAccesso" as UI
+control ":ControlloAccesso" as Ctrl
+entity ":Utente" as UtenteEnt
+entity ":Ausiliario del Traffico" as AusEnt
+boundary ":MappaStalli" as MappaStalli
+boundary ":MappaSegnalazioni" as MappaSegn
+boundary ":PanoramicaEnti" as PanEnti
+boundary ":MenuUtente" as Menu
+
+loop [finché le credenziali non sono corrette (2.a1)]
+  User -> UI : 1: accedi(email, password)
+  UI -> Ctrl : 1.1: autentica(email, password)
+  Ctrl -> UtenteEnt : 2.1: verificaCredenziali(email, password)
+
+  opt [2.a1 Credenziali errate]
+    Ctrl -> UI : 2.a1.1: segnalaCredenzialiErrate()
+  end
+end
+
+opt [l'utente è un Ausiliario del Traffico]
+  Ctrl -> AusEnt : 2.2: statoDellAccount()
+end
+
+break [2.a2 Account disattivato]
+  Ctrl -> UI : 2.a2.1: segnalaAccountDisattivato()
+end
+
+Ctrl -> Ctrl : 3.1: avviaSessione(utente)
+
+alt [Automobilista]
+  Ctrl -> MappaStalli : 3.2: mostraMappaStalli()
+else [Ausiliario del Traffico]
+  Ctrl -> MappaSegn : 3.2: mostraMappaSegnalazioni()
+else [Amministratore]
+  Ctrl -> PanEnti : 3.2: mostraPanoramicaEnti()
+end
+
+opt [3.a1 L'utente chiede di uscire]
+  User -> Menu : 3.a1: esci()
+  Menu -> Ctrl : 3.a1.1: esci()
+  Ctrl -> Ctrl : 3.a1.2: chiudiSessione()
+  Ctrl -> UI : 3.a1.3: mostraAccesso()
+end
+@enduml

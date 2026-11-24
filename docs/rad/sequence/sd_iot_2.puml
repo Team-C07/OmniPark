@@ -1,0 +1,16 @@
+@startuml sd_iot_2
+actor "Time" as Time
+control ":ControlloTimeoutSensori" as Ctrl
+entity ":Stallo" as Stallo
+boundary ":MappaStalli" as UI
+
+Time -> Ctrl : 1: sessantaSecondiSenzaRilevazioni(stallo)
+Ctrl -> Stallo : 2.1: sostaInCorso()
+
+break [2.a1 Sullo stallo c'è una sosta Attiva]
+  note over Ctrl, Stallo : lo stallo resta Non disponibile fino alla scadenza (RF_SOSTA_6)
+end
+
+Ctrl -> Stallo : 2.2: impostaStato(Sconosciuto)
+Ctrl -> UI : 3.1: aggiornaStato(stallo, Sconosciuto)
+@enduml

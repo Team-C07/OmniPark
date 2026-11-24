@@ -1,0 +1,17 @@
+@startuml sd_op_2
+actor "Ausiliario del Traffico" as Aus
+boundary ":MappaSegnalazioni" as UI
+control ":ControlloPresaInCarico" as Ctrl
+entity ":Segnalazione" as Segn
+
+Aus -> UI : 1: prendiInCarico(segnalazione)
+UI -> Ctrl : 1.1: prendiInCarico(segnalazione)
+Ctrl -> Segn : 2.1: stato()
+
+break [2.a1 Già presa in carico da un altro Ausiliario o già Chiusa]
+  Ctrl -> UI : 2.a1.1: segnalaNonPiùDisponibile()
+end
+
+Ctrl -> Segn : 3.1: assegnaA(ausiliario, dataOra)
+Ctrl -> UI : 3.2: confermaAssegnazione()
+@enduml

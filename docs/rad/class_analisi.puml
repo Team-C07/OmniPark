@@ -1,0 +1,185 @@
+@startuml class_analisi
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+' Class Diagram d'analisi 6.1: aggiunto Stallo.occupazione rilevata (RF_SOSTA_6, SD_IOT_1, SD_SOSTA_7)
+
+' === ENUMERAZIONI DAL GLOSSARIO (RAD, cap. 4) ===
+
+enum StatoAccount {
+  ATTIVO
+  DISATTIVATO
+}
+
+enum TipoStallo {
+  ORDINARIO_A_PAGAMENTO
+  DISABILI
+  ROSA
+}
+
+enum StatoStallo {
+  LIBERO
+  OCCUPATO
+  NON_DISPONIBILE
+  SCONOSCIUTO
+}
+
+enum OccupazioneRilevata {
+  VEICOLO_PRESENTE
+  NESSUN_VEICOLO
+}
+
+enum StatoSosta {
+  ATTIVA
+  SCADUTA
+  TERMINATA
+}
+
+enum PagamentoSosta {
+  PAGATA
+  GRATUITA
+}
+
+enum TipoMovimento {
+  RICARICA
+  ADDEBITO
+}
+
+enum StatoSegnalazione {
+  APERTA
+  PRESA_IN_CARICO
+  CHIUSA
+}
+
+enum MotivoSegnalazione {
+  SOSTA_ASSENTE
+  SOSTA_SCADUTA
+  TARGA_NON_CORRISPONDENTE
+}
+
+enum EsitoSegnalazione {
+  SOSTA_IRREGOLARE_ACCERTATA
+  NON_CONFERMATA
+}
+
+enum EsitoVerifica {
+  CONFORME
+  NON_CONFORME
+}
+
+' === GERARCHIA UTENTI ===
+
+abstract class Utente {
+  email
+  password
+}
+
+class Automobilista {
+}
+
+class Amministratore {
+  nome e cognome
+}
+
+class "Ausiliario del Traffico" as Ausiliario {
+  nome e cognome
+  stato dell'account : StatoAccount
+}
+
+Utente <|-- Automobilista
+Utente <|-- Amministratore
+Utente <|-- Ausiliario
+note on link : {complete, disjoint}
+
+' === ENTITA DI DOMINIO ===
+
+class "Wallet virtuale" as Wallet {
+  /saldo
+}
+
+class "Movimento del wallet" as Movimento {
+  tipo di movimento : TipoMovimento
+  importo
+  data e ora
+}
+
+class Veicolo {
+  targa
+}
+
+class Sosta {
+  stato : StatoSosta
+  orario di avvio
+  orario di scadenza
+  /pagamento : PagamentoSosta
+  dichiarazione di permesso [0..1]
+  foto del permesso [0..1]
+}
+
+class "Verifica del permesso" as VerificaPermesso {
+  esito : EsitoVerifica
+  data e ora
+}
+
+class Segnalazione {
+  stato : StatoSegnalazione
+  motivo [0..1] : MotivoSegnalazione
+  targa rilevata [0..1]
+  data e ora della lettura [0..1]
+  data e ora della presa in carico [0..1]
+  esito [0..1] : EsitoSegnalazione
+  data e ora della chiusura [0..1]
+}
+
+class Stallo {
+  numero
+  posizione
+  tipo di stallo : TipoStallo
+  stato : StatoStallo
+  occupazione rilevata : OccupazioneRilevata
+  data e ora dell'ultima rilevazione
+}
+
+class Tariffa {
+  costo orario
+  orari di vigenza
+  durata massima
+}
+
+class "Area di sosta" as AreaSosta {
+  nome
+}
+
+class "Ente preposto" as EntePreposto {
+  nome
+}
+
+' === 19 ASSOCIAZIONI E MOLTEPLICITA (Sez. 5) ===
+
+Automobilista "1" -- "1" Wallet : possiede >
+Wallet "1" -- "0..*" Movimento : registra >
+Movimento "0..*" -- "0..1" Sosta : è addebitato per >
+
+Automobilista "1..*" -- "1..*" Veicolo : associa >
+Automobilista "1" -- "0..*" Sosta : avvia >
+Sosta "0..*" -- "1" Veicolo : è avviata per >
+Sosta "0..*" -- "1" Stallo : si svolge in >
+
+Automobilista "0..*" -- "0..*" Stallo : salva tra i preferiti >
+Automobilista "0..*" -- "0..*" AreaSosta : salva tra i preferiti >
+
+Tariffa "1" -- "1..*" Stallo : si applica a >
+Stallo "1..*" -- "1" AreaSosta : appartiene a >
+AreaSosta "1..*" -- "1" EntePreposto : è di competenza di >
+
+Amministratore "1..*" -- "0..*" Ausiliario : gestisce l'account di >
+Ausiliario "1..*" -- "1" EntePreposto : opera per >
+
+Segnalazione "0..*" -- "1" Stallo : è rilevata in >
+Segnalazione "0..*" -- "0..1" Ausiliario : è assegnata a >
+
+VerificaPermesso "0..1" -- "1" Sosta : controlla >
+VerificaPermesso "0..*" -- "1" Ausiliario : è registrata da >
+VerificaPermesso "0..1" -- "0..1" Segnalazione : genera >
+
+@enduml

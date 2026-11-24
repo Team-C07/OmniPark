@@ -1,0 +1,23 @@
+@startuml sd_wallet_3
+actor "Automobilista" as Auto
+boundary ":SchermataProfilo" as UI
+control ":ControlloWallet" as Ctrl
+entity ":Wallet virtuale" as Wallet
+entity ":Movimento del wallet" as Mov
+
+Auto -> UI : 1: apriWallet()
+UI -> Ctrl : 1.1: richiediWallet()
+Ctrl -> Wallet : 2.1: saldo()
+Ctrl -> Wallet : 2.2: movimenti()
+
+break [2.a2 Dati del wallet non disponibili]
+  Ctrl -> UI : 2.a2.1: segnalaWalletNonDisponibile()
+end
+
+loop [per ogni movimento di tipo addebito]
+  Ctrl -> Mov : 2.3: sostaETarga()
+end
+
+Ctrl -> UI : 2.4: mostraSaldoECronologia(saldo, movimenti)
+note over Ctrl, Mov : 2.a1: senza movimenti il saldo è 0,00 € e la cronologia è vuota, con gli stessi messaggi
+@enduml

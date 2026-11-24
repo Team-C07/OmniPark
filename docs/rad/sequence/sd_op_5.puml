@@ -1,0 +1,42 @@
+@startuml sd_op_5
+actor "Ausiliario del Traffico" as Aus
+boundary ":MappaSegnalazioni" as UI
+control ":ControlloVerificaPermesso" as Ctrl
+entity ":Stallo" as Stallo
+entity ":Sosta" as Sosta
+
+Aus -> UI : 1: verificaPermesso(stallo)
+UI -> Ctrl : 1.1: richiediVerifica(stallo)
+Ctrl -> Stallo : 2.1: sostaInCorso()
+
+break [2.a1 La sosta non è più Attiva]
+  Ctrl -> UI : 2.a1.1: segnalaNullaDaVerificare()
+end
+
+Ctrl -> Stallo : 2.2: tipoDiStallo()
+Ctrl -> Sosta : 2.3: targaDichiarazioneEFoto()
+Ctrl -> UI : 2.4: mostraPermesso(tipo, targa, dichiarazione, foto)
+
+break [3.a1 L'Ausiliario annulla]
+  Aus -> UI : 3.a1: annulla()
+end
+
+Aus -> UI : 3: indicaEsito(esito)
+UI -> Ctrl : 3.1: registraEsito(esito)
+Ctrl -> Sosta : 4.1: verificaRegistrata()
+
+break [4.a2 Un altro Ausiliario ha già registrato l'esito]
+  Ctrl -> UI : 4.a2.1: segnalaEsitoGiàRegistrato()
+end
+
+create entity ":Verifica del permesso" as Ver
+Ctrl --> Ver : 4.2: <<create>>(sosta, ausiliario, esito, dataOra)
+
+opt [4.a1 Esito non conforme]
+  create entity "nuova:Segnalazione" as NuovaSegn
+  Ctrl --> NuovaSegn : 4.a1.1: <<create>>(stallo, ausiliario, sosta irregolare accertata)
+  Ctrl -> Ver : 4.a1.2: genera(segnalazione)
+end
+
+Ctrl -> UI : 4.3: confermaRegistrazione()
+@enduml

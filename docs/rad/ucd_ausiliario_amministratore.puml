@@ -1,0 +1,38 @@
+@startuml ucd_ausiliario_amministratore
+left to right direction
+
+actor "Ausiliario del Traffico" as Ausiliario
+actor "Telecamera ANPR" as ANPR <<system>>
+actor "Amministratore" as Admin
+
+package "ANPR - Rilevamento" {
+  usecase "UC_ANPR_1\nRilevare una possibile sosta irregolare" as UC_ANPR_1
+}
+
+package "OP - Operatività" {
+  usecase "UC_OP_1\nConsultare le segnalazioni del comune" as UC_OP_1
+  usecase "UC_OP_2\nPrendere in carico una segnalazione" as UC_OP_2
+  usecase "UC_OP_3\nVerificare lo stato del pagamento" as UC_OP_3
+  usecase "UC_OP_4\nChiudere una segnalazione\n--\nextension points: Verifica del pagamento" as UC_OP_4
+  usecase "UC_OP_5\nRegistrare l'esito della verifica del permesso" as UC_OP_5
+
+  UC_OP_3 .> UC_OP_4 : <<extend>>
+}
+
+package "ADM - Amministrazione" {
+  usecase "UC_ADM_1\nConsultare il riepilogo di un ente cliente" as UC_ADM_1
+  usecase "UC_ADM_2\nGestire gli account degli Ausiliari del Traffico" as UC_ADM_2
+}
+
+ANPR -- UC_ANPR_1
+UC_ANPR_1 -- Ausiliario
+
+Ausiliario -- UC_OP_1
+Ausiliario -- UC_OP_2
+Ausiliario -- UC_OP_3
+Ausiliario -- UC_OP_4
+Ausiliario -- UC_OP_5
+
+Admin -- UC_ADM_1
+Admin -- UC_ADM_2
+@enduml

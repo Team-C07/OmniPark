@@ -1,0 +1,29 @@
+@startuml sd_stalli_3
+actor "Automobilista" as Auto
+boundary ":MappaStalli" as UI
+control ":ControlloSalvataggioPreferiti" as Ctrl
+entity ":Automobilista" as AutoEnt
+entity ":Stallo" as Stallo
+
+Auto -> UI : 1: salvaTraIPreferiti(stallo o area)
+UI -> Ctrl : 1.1: salvaPreferito(stallo o area)
+
+alt [stallo]
+  Ctrl -> AutoEnt : 2.1: haTraIPreferiti(stallo)
+else [area di sosta]
+  Ctrl -> Stallo : 2.1: areaDiSosta()
+  Ctrl -> AutoEnt : 2.2: haTraIPreferiti(area)
+end
+
+break [2.a1 Già tra i preferiti]
+  Ctrl -> UI : 2.a1.1: segnalaGiàPreferito()
+end
+
+Ctrl -> AutoEnt : 3.1: salvaTraIPreferiti(stallo o area)
+
+break [3.a1 Salvataggio non riuscito]
+  Ctrl -> UI : 3.a1.1: segnalaSalvataggioNonRiuscito()
+end
+
+Ctrl -> UI : 3.2: confermaSalvataggio()
+@enduml

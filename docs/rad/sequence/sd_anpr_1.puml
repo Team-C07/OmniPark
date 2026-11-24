@@ -1,0 +1,41 @@
+@startuml sd_anpr_1
+actor "Telecamera ANPR" as Cam <<system>>
+boundary ":InterfacciaANPR" as CamUI
+control ":ControlloLettureANPR" as Ctrl
+entity ":Stallo" as Stallo
+entity ":Tariffa" as Tariffa
+entity ":Segnalazione" as Segn
+boundary ":MappaSegnalazioni" as UI
+
+Cam -> CamUI : 1: lettura(targa, stallo, dataOra)
+CamUI -> Ctrl : 1.1: elaboraLettura(targa, stallo, dataOra)
+
+break [1.a1 Lettura incompleta o stallo inesistente]
+  Ctrl -> Ctrl : 1.a1.1: scarta(lettura)
+end
+
+Ctrl -> Stallo : 2.1: sostaInCorso()
+
+break [2.a1 La targa è associata a una sosta Attiva per lo stallo]
+  note over Ctrl, Stallo : nessuna segnalazione
+end
+
+Ctrl -> Stallo : 2.2: tipoDiStallo()
+Ctrl -> Tariffa : 2.3: orariDiVigenza()
+
+break [2.a2 Fuori dalla fascia a pagamento e stallo non riservato]
+  note over Ctrl, Tariffa : sosta libera, nessuna segnalazione
+end
+
+Ctrl -> Ctrl : 3.1: individuaMotivo(targa, sosta)
+Ctrl -> Segn : 4.1: esisteNonChiusa(targa)
+
+break [4.a1 Per il veicolo esiste già una segnalazione non chiusa]
+  Ctrl -> Ctrl : 4.a1.1: scarta(lettura)
+end
+
+create entity "nuova:Segnalazione" as NuovaSegn
+Ctrl --> NuovaSegn : 5.1: <<create>>(targa, stallo, dataOra, motivo)
+Ctrl -> Stallo : 6.1: enteCompetente()
+Ctrl -> UI : 6.2: aggiungiSegnalazione(segnalazione, ente)
+@enduml
