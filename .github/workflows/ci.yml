@@ -18,6 +18,21 @@ jobs:
     timeout-minutes: 15
     env:
       NEXT_TELEMETRY_DISABLED: 1
+    # Database usa e getta per verificare le migrazioni: credenziali fittizie, nessun segreto.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: omnipark
+          POSTGRES_PASSWORD: omnipark_ci
+          POSTGRES_DB: omnipark_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U omnipark -d omnipark_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -34,6 +49,17 @@ jobs:
 
       - name: Controllo della formattazione
         run: npm run format:check
+
+      # Applica le migrazioni sul database vuoto, poi verifica che una seconda esecuzione
+      # non trovi nulla da applicare.
+      - name: Migrazioni del database
+        env:
+          DATABASE_URL: postgres://omnipark:omnipark_ci@localhost:5432/omnipark_ci
+        run: |
+          npm run db:migrate
+          seconda=$(npm run db:migrate)
+          echo "$seconda"
+          grep -q "Nessuna migrazione da applicare" <<< "$seconda"
 
       - name: Test
         run: npm test
