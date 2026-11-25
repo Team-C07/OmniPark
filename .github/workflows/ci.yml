@@ -17,9 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      # Valore fittizio: la build richiede la variabile ma non si collega al database.
-      # Le stringhe di connessione reali non vanno mai nel repository.
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/omnipark_ci
       NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@v4

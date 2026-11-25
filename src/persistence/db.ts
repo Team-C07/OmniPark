@@ -1,39 +1,63 @@
-import { Pool, type PoolConfig } from "pg";
+import { Pool } from "pg";
 
-export const SERVERLESS_POOL_CONFIG: Omit<PoolConfig, "connectionString"> = {
-  max: 5,
-  idleTimeoutMillis: 10_000,
-  connectionTimeoutMillis: 10_000,
-  allowExitOnIdle: true,
-};
+// Configurazione fissa, pensata per le funzioni serverless e per il pooler di Neon:
+// poche connessioni per istanza, chiuse presto quando restano inattive.
+const MAX_CONNESSIONI = 3;
+const INATTIVITA_MAX_MS = 5_000;
+const ATTESA_CONNESSIONE_MAX_MS = 10_000;
 
-export function creaConfigurazionePool(connectionString = process.env.DATABASE_URL): PoolConfig {
-  if (!connectionString || connectionString.trim() === "") {
+// In sviluppo il ricaricamento a caldo rivaluta i moduli: la cache in globalThis
+// evita di aprire un nuovo pool a ogni modifica.
+const cacheGlobale = globalThis as unknown as { omniparkPool?: Pool };
+
+let pool: Pool | undefined;
+
+/**
+ * Restituisce il pool di connessioni, creandolo al primo uso.
+ * Lancia un errore se DATABASE_URL non è impostata.
+ */
+export function ottieniPool(): Pool {
+  pool ??= cacheGlobale.omniparkPool;
+  if (pool) {
+    return pool;
+  }
+
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
     throw new Error("DATABASE_URL non configurata");
   }
-  return { connectionString, ...SERVERLESS_POOL_CONFIG };
-}
 
-const globalForPg = globalThis as unknown as { pgPool?: Pool };
+  const nuovoPool = new Pool({
+    connectionString,
+    max: MAX_CONNESSIONI,
+    idleTimeoutMillis: INATTIVITA_MAX_MS,
+    connectionTimeoutMillis: ATTESA_CONNESSIONE_MAX_MS,
+  });
 
-export function getPool(): Pool {
-  if (!globalForPg.pgPool) {
-    globalForPg.pgPool = new Pool(creaConfigurazionePool());
+  // Senza questo gestore, un client inattivo chiuso dal server farebbe terminare il processo.
+  nuovoPool.on("error", (errore) => {
+    console.error("Errore su una connessione inattiva del database:", errore.message);
+  });
+
+  pool = nuovoPool;
+  if (process.env.NODE_ENV !== "production") {
+    cacheGlobale.omniparkPool = nuovoPool;
   }
-  return globalForPg.pgPool;
+  return nuovoPool;
 }
 
-export async function verificaConnessioneDatabase(): Promise<string> {
-  const result = await getPool().query<{ database: string }>(
+/** Chiude il pool, se è stato creato. Serve agli script da riga di comando. */
+export async function chiudiPool(): Promise<void> {
+  const daChiudere = pool ?? cacheGlobale.omniparkPool;
+  pool = undefined;
+  cacheGlobale.omniparkPool = undefined;
+  await daChiudere?.end();
+}
+
+/** Verifica che il database risponda e restituisce il nome del database collegato. */
+export async function verificaConnessione(): Promise<{ database: string }> {
+  const risultato = await ottieniPool().query<{ database: string }>(
     "SELECT current_database() AS database",
   );
-  return result.rows[0]?.database ?? "sconosciuto";
-}
-
-export async function chiudiPool(): Promise<void> {
-  if (globalForPg.pgPool) {
-    const poolDaChiudere = globalForPg.pgPool;
-    globalForPg.pgPool = undefined;
-    await poolDaChiudere.end();
-  }
+  return { database: risultato.rows[0].database };
 }
