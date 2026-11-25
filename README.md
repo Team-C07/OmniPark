@@ -4,7 +4,7 @@ Prototipo di un servizio per la gestione della sosta urbana: mappa degli stalli 
 
 **Stack:** Next.js 16 · TypeScript · PostgreSQL 17 · Vitest · Node.js 26.13.0
 
-**Stato:** ambiente di sviluppo, connessione database cloud con migrazioni versionate, documentazione di analisi e regole per gli agenti pronti; sottosistemi in sviluppo.
+**Stato:** ambiente di sviluppo, documentazione di analisi e regole per gli agenti pronti; sottosistemi in sviluppo.
 
 ## Avvio rapido
 
@@ -24,34 +24,44 @@ cd OmniPark
 nvm use
 npm ci
 cp .env.example .env
+# in .env: imposta DATABASE_URL, lascia OMNIPARK_AMBIENTE al valore segnaposto
+npm run db:migrate
 npm run dev
 ```
 
 Su Windows (PowerShell) al posto di `cp` si usa `Copy-Item .env.example .env`. L'applicazione è su http://localhost:3000 e si arresta con `Ctrl + C`.
 
-Il file `.env` contiene la variabile `DATABASE_URL`. Per ora il valore di esempio basta: lint, test e build non si collegano al database. La connessione a PostgreSQL 17 su Neon e i comandi del database arrivano con il task del database (OMP-31), che aggiornerà questa sezione. Il file `.env` è ignorato da Git e non va mai condiviso: nel repository c'è solo `.env.example`.
+**Connessione al database.** Il database è PostgreSQL 17 su Neon. Lo sviluppo usa un unico database condiviso da tutto il team: il database `omnipark` del branch Neon `dev-teamc07`. La produzione è sul branch Neon `production`. L'applicazione e i comandi del database leggono la connessione solo da `DATABASE_URL`, nel file `.env`:
 
-## Database e migrazioni
+- usa la stringa **pooled** del branch `dev-teamc07` (host con `-pooler`);
+- la stringa copiata da Neon termina con `?sslmode=require&channel_binding=require`: sostituiscila con `?sslmode=verify-full`;
+- lascia `OMNIPARK_AMBIENTE` al valore segnaposto di `.env.example`, così `db:reset` resta bloccato.
 
-- **Connessione:** l'applicazione legge esclusivamente `DATABASE_URL` e utilizza un pool `pg` dimensionato per l'esecuzione serverless (senza ORM, con SQL esplicito in `src/persistence/ connessione PostgreSQL, migrazioni SQL e accesso ai dati
-  src/persistence/migrations/ file SQL numerati per l'evoluzione dello schema
-- **Migrazioni versionate (`npm run db:migrate`):** esegue in ordine numerico i file `.sql` in `src/persistence/migrations/` (es. `001_init.sql`) non ancora registrati in `schema_migrations`, garantendo idempotenza. Le migrazioni già integrate in `main` non vanno modificate: ogni variazione dello schema richiede un nuovo file numerato.
-- **Reset dello schema (`npm run db:reset`):** elimina e ricrea lo schema `public`. È consentito solo in sviluppo ed è bloccato automaticamente se l'ambiente o `DATABASE_URL` puntano alla produzione. Dopo un reset, rieseguire `npm run db:migrate`.
+I valori reali li distribuiscono i PM. Le credenziali del database di produzione le hanno solo i PM. Il file `.env` è ignorato da Git e non va mai condiviso: nel repository c'è solo `.env.example`, con i nomi delle variabili e valori segnaposto. Lint, test e build non si collegano al database e non richiedono `DATABASE_URL`.
+
+**Migrazioni.** `npm run db:migrate` applica in ordine i file di `src/persistence/migrations/` non ancora applicati e li registra nella tabella `registro_migrazioni`. Se il database è aggiornato non fa nulla e lo dice. Poiché il database di sviluppo è condiviso, `db:migrate` su di esso si esegue solo dal branch `main` aggiornato, quindi solo con migrazioni già integrate. Una migrazione nuova si prova sul database di test (issue #5) oppure, finché non esiste, su un branch Neon temporaneo creato dai PM. Se il database condiviso si blocca, un PM esegue `db:reset` da `main`. Regole per i file:
+
+- nome `NNNN_descrizione.sql`: 4 cifre da `0001`, descrizione in minuscolo con parole separate da `_`, versioni senza duplicati e successive all'ultima applicata;
+- le migrazioni sono immutabili: una migrazione integrata nel `main` non si modifica, ogni cambiamento va in una nuova migrazione (il comando si blocca se il checksum di una migrazione applicata non corrisponde più al file);
+- ogni file viene eseguito in una transazione insieme alla sua registrazione: non scrivere `BEGIN` o `COMMIT` nel file;
+- le connessioni passano dal pooler di Neon in modalità transaction: niente stato di sessione, quindi niente `SET` fuori transazione (usa `SET LOCAL`), `LISTEN`/`NOTIFY` o `CREATE INDEX CONCURRENTLY`.
+
+**Reset.** `npm run db:reset` elimina e ricrea lo schema `public` (con proprietario e privilegi predefiniti) e riapplica tutte le migrazioni: **tutti i dati del database vengono cancellati**, per tutto il team. Per questo `db:reset` lo eseguono solo i PM, dopo aver avvisato il team. Prima di agire il comando mostra host e nome del database. Parte solo se `OMNIPARK_AMBIENTE` vale `sviluppo` o `test`, e rifiuta comunque se è impostata `VERCEL_ENV` o se `NODE_ENV` vale `production`.
 
 ## Comandi
 
-| Comando                 | Cosa fa                                             |
-| :---------------------- | :-------------------------------------------------- |
-| `npm run dev`           | avvia l'app in sviluppo                             |
-| `npm run db:migrate`    | applica le migrazioni SQL non ancora eseguite       |
-| `npm run db:reset`      | elimina e ricrea lo schema `public` (solo sviluppo) |
-| `npm run lint`          | analisi statica con ESLint                          |
-| `npm run format`        | formatta i file con Prettier                        |
-| `npm run format:check`  | controlla la formattazione                          |
-| `npm test`              | esegue tutti i test una volta                       |
-| `npm run test:watch`    | riesegue i test durante lo sviluppo                 |
-| `npm run test:coverage` | test con report di copertura in `coverage/`         |
-| `npm run build`         | build di produzione                                 |
+| Comando                 | Cosa fa                                     |
+| :---------------------- | :------------------------------------------ |
+| `npm run dev`           | avvia l'app in sviluppo                     |
+| `npm run lint`          | analisi statica con ESLint                  |
+| `npm run format`        | formatta i file con Prettier                |
+| `npm run format:check`  | controlla la formattazione                  |
+| `npm test`              | esegue tutti i test una volta               |
+| `npm run test:watch`    | riesegue i test durante lo sviluppo         |
+| `npm run test:coverage` | test con report di copertura in `coverage/` |
+| `npm run build`         | build di produzione                         |
+| `npm run db:migrate`    | applica le migrazioni non ancora applicate  |
+| `npm run db:reset`      | ricrea lo schema e riapplica le migrazioni  |
 
 ## Come si lavora
 

@@ -24,16 +24,18 @@ La specifica è in `docs/rad/`: requisiti, casi d'uso, class diagram, sequence d
 - Vitest con copertura V8, ESLint, Prettier, Tailwind CSS 4.
 - Pubblicazione prevista su Vercel. Le funzioni serverless non restano accese e non condividono memoria: niente `setInterval`, job in background o stato condiviso in variabili globali.
 
-| Comando                 | Uso                                       |
-| :---------------------- | :---------------------------------------- |
-| `npm ci`                | installazione dalle versioni del lockfile |
-| `npm run dev`           | avvio in sviluppo                         |
-| `npm run lint`          | analisi statica                           |
-| `npm run format:check`  | controllo della formattazione             |
-| `npm run format`        | formattazione dei file                    |
-| `npm test`              | tutti i test, una volta                   |
-| `npm run test:coverage` | test con report di copertura              |
-| `npm run build`         | build di produzione                       |
+| Comando                 | Uso                                        |
+| :---------------------- | :----------------------------------------- |
+| `npm ci`                | installazione dalle versioni del lockfile  |
+| `npm run dev`           | avvio in sviluppo                          |
+| `npm run lint`          | analisi statica                            |
+| `npm run format:check`  | controllo della formattazione              |
+| `npm run format`        | formattazione dei file                     |
+| `npm test`              | tutti i test, una volta                    |
+| `npm run test:coverage` | test con report di copertura               |
+| `npm run build`         | build di produzione                        |
+| `npm run db:migrate`    | applica le migrazioni non ancora applicate |
+| `npm run db:reset`      | ricrea lo schema e riapplica le migrazioni |
 
 ## Struttura del repository
 
@@ -43,7 +45,7 @@ La specifica è in `docs/rad/`: requisiti, casi d'uso, class diagram, sequence d
 - `src/application/<sottosistema>/`: logica dei casi d'uso, una cartella per sottosistema (`utenti-accessi`, `gestione-stalli`, `gestione-soste`, `wallet`, `segnalazioni`, `amministrazione`). Niente SQL: si passa dallo strato di persistenza.
 - `src/persistence/`: unico punto con SQL (connessione, migrazioni, accesso ai dati).
 - `src/simulators/`: simulatori di sensori, ANPR e pagamenti. Parlano con l'applicazione solo tramite le API.
-- `src/lib/`: codice provvisorio della configurazione iniziale. non aggiungere codice provvisorio in `src/lib/`; tutto il codice SQL e le migrazioni risiedono in `src/persistence/`. Non prenderli come modello e non aggiungere codice in `src/lib/`.
+- `src/lib/`: codice provvisorio della configurazione iniziale (oggi solo l'esempio `tariffe.ts`). La connessione al database è in `src/persistence/db.ts`. Non prendere `src/lib/` come modello e non aggiungervi codice.
 - I test stanno accanto al codice che verificano, con nome `*.test.ts` (configurazione in `vitest.config.ts`).
 
 ## Convenzioni
