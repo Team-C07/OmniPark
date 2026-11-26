@@ -27,6 +27,19 @@ export function ottieniPool(): Pool {
     throw new Error("DATABASE_URL non configurata");
   }
 
+  const nuovoPool = creaPool(connectionString);
+  pool = nuovoPool;
+  if (process.env.NODE_ENV !== "production") {
+    cacheGlobale.omniparkPool = nuovoPool;
+  }
+  return nuovoPool;
+}
+
+/**
+ * Crea un pool con la configurazione comune. Serve a ottieniPool() e a chi deve collegarsi a un
+ * database diverso da DATABASE_URL (per esempio il database di test); chi lo crea lo chiude.
+ */
+export function creaPool(connectionString: string): Pool {
   const nuovoPool = new Pool({
     connectionString,
     max: MAX_CONNESSIONI,
@@ -39,10 +52,6 @@ export function ottieniPool(): Pool {
     console.error("Errore su una connessione inattiva del database:", errore.message);
   });
 
-  pool = nuovoPool;
-  if (process.env.NODE_ENV !== "production") {
-    cacheGlobale.omniparkPool = nuovoPool;
-  }
   return nuovoPool;
 }
 
