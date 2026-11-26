@@ -48,20 +48,40 @@ I valori reali li distribuiscono i PM. Le credenziali del database di produzione
 
 **Reset.** `npm run db:reset` elimina e ricrea lo schema `public` (con proprietario e privilegi predefiniti) e riapplica tutte le migrazioni: **tutti i dati del database vengono cancellati**, per tutto il team. Per questo `db:reset` lo eseguono solo i PM, dopo aver avvisato il team. Prima di agire il comando mostra host e nome del database. Parte solo se `OMNIPARK_AMBIENTE` vale `sviluppo` o `test`, e rifiuta comunque se è impostata `VERCEL_ENV` o se `NODE_ENV` vale `production`.
 
+**Dati di esempio.** Il dataset dimostrativo è la migrazione `0002_dati_esempio.sql`: arriva con `db:migrate` ed è ricreato identico da `db:reset`, in tutti gli ambienti. Contiene tre enti (Gragnano, Fisciano, Baronissi) con aree, tariffe e 30 stalli su vie reali, un amministratore, cinque ausiliari (uno disattivato), cinque automobilisti con targhe e credito, e uno storico di soste, movimenti, verifiche e segnalazioni a date fisse. Non contiene soste in corso né stalli `Non disponibile`: li creano i simulatori e i test. Limite noto: lo stato `Libero` od `Occupato` degli stalli si basa su un'ultima rilevazione fissa (15/11/2026); con il timeout di 60 secondi di RF_IOT_2 gli stalli risultano `Sconosciuti` finché i simulatori dei sensori non inviano nuove rilevazioni.
+
+**Database di test.** I test sul database (`npm run test:db`) usano un database personale sul branch Neon `dev-teamc07`, con nome `omnipark_<nome>_test`, indicato nella variabile `DATABASE_URL_TEST` del file `.env` (stringa pooled con `sslmode=verify-full`, come `DATABASE_URL`). All'inizio di ogni file di test il database viene ricreato con schema e dati di esempio, e ogni test gira in una transazione annullata alla fine: i dati di sviluppo non vengono mai toccati. Il comando rifiuta di partire se `DATABASE_URL_TEST` manca, se il nome del database non finisce con `_test` o se indica lo stesso database di `DATABASE_URL`. `npm test` e la CI non usano il database.
+
+**Credenziali dimostrative.** Valgono solo per i dati di esempio. La password dell'amministratore (`marco.esposito@omnipark.example`) la comunicano i PM.
+
+| Ruolo                    | Email                             | Ente      | Password                  |
+| :----------------------- | :-------------------------------- | :-------- | :------------------------ |
+| Ausiliario del Traffico  | `paolo.ferri@omnipark.example`    | Gragnano  | `Demo-Ausiliario-2026`    |
+| Ausiliario del Traffico  | `sara.galli@omnipark.example`     | Gragnano  | `Demo-Ausiliario-2026`    |
+| Ausiliario (disattivato) | `luca.russo@omnipark.example`     | Gragnano  | `Demo-Ausiliario-2026`    |
+| Ausiliario del Traffico  | `anna.moretti@omnipark.example`   | Fisciano  | `Demo-Ausiliario-2026`    |
+| Ausiliario del Traffico  | `giorgio.marino@omnipark.example` | Baronissi | `Demo-Ausiliario-2026`    |
+| Automobilista            | `elena.bianchi@omnipark.example`  | —         | `Demo-Automobilista-2026` |
+| Automobilista            | `marco.rossi@omnipark.example`    | —         | `Demo-Automobilista-2026` |
+| Automobilista            | `luigi.verde@omnipark.example`    | —         | `Demo-Automobilista-2026` |
+| Automobilista            | `giulia.romano@omnipark.example`  | —         | `Demo-Automobilista-2026` |
+| Automobilista            | `davide.conte@omnipark.example`   | —         | `Demo-Automobilista-2026` |
+
 ## Comandi
 
-| Comando                 | Cosa fa                                     |
-| :---------------------- | :------------------------------------------ |
-| `npm run dev`           | avvia l'app in sviluppo                     |
-| `npm run lint`          | analisi statica con ESLint                  |
-| `npm run format`        | formatta i file con Prettier                |
-| `npm run format:check`  | controlla la formattazione                  |
-| `npm test`              | esegue tutti i test una volta               |
-| `npm run test:watch`    | riesegue i test durante lo sviluppo         |
-| `npm run test:coverage` | test con report di copertura in `coverage/` |
-| `npm run build`         | build di produzione                         |
-| `npm run db:migrate`    | applica le migrazioni non ancora applicate  |
-| `npm run db:reset`      | ricrea lo schema e riapplica le migrazioni  |
+| Comando                 | Cosa fa                                         |
+| :---------------------- | :---------------------------------------------- |
+| `npm run dev`           | avvia l'app in sviluppo                         |
+| `npm run lint`          | analisi statica con ESLint                      |
+| `npm run format`        | formatta i file con Prettier                    |
+| `npm run format:check`  | controlla la formattazione                      |
+| `npm test`              | esegue tutti i test una volta                   |
+| `npm run test:watch`    | riesegue i test durante lo sviluppo             |
+| `npm run test:coverage` | test con report di copertura in `coverage/`     |
+| `npm run test:db`       | test sul database di test (`DATABASE_URL_TEST`) |
+| `npm run build`         | build di produzione                             |
+| `npm run db:migrate`    | applica le migrazioni non ancora applicate      |
+| `npm run db:reset`      | ricrea lo schema e riapplica le migrazioni      |
 
 ## Come si lavora
 
