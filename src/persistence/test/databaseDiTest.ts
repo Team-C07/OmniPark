@@ -80,6 +80,17 @@ export async function preparaDatabaseDiTest(): Promise<void> {
   await resettaDatabase(pool, { ...process.env, OMNIPARK_AMBIENTE: "test" });
 }
 
+/**
+ * Il pool del database di test, per i test che usano transazioni vere con commit
+ * (per esempio eseguiInTransazione). Va chiamato dopo preparaDatabaseDiTest().
+ */
+export function poolDiTest(): Pool {
+  if (!pool) {
+    throw new Error("Chiama preparaDatabaseDiTest() prima di usare il pool di test.");
+  }
+  return pool;
+}
+
 /** Da chiamare nel beforeEach: apre una transazione e restituisce il client da usare nel test. */
 export async function iniziaTransazioneDiTest(): Promise<PoolClient> {
   if (!pool) {
