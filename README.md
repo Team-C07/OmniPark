@@ -39,6 +39,8 @@ Su Windows (PowerShell) al posto di `cp` si usa `Copy-Item .env.example .env`. L
 
 I valori reali li distribuiscono i PM. Le credenziali del database di produzione le hanno solo i PM. Il file `.env` è ignorato da Git e non va mai condiviso: nel repository c'è solo `.env.example`, con i nomi delle variabili e valori segnaposto. Lint, test e build non si collegano al database e non richiedono `DATABASE_URL`.
 
+Questa configurazione vale per lo sviluppo in locale. Anteprime e produzione su Vercel usano database diversi: vedi «Ambienti e pubblicazione».
+
 **Migrazioni.** `npm run db:migrate` applica in ordine i file di `src/persistence/migrations/` non ancora applicati e li registra nella tabella `registro_migrazioni`. Se il database è aggiornato non fa nulla e lo dice. Poiché il database di sviluppo è condiviso, `db:migrate` su di esso si esegue solo dal branch `main` aggiornato, quindi solo con migrazioni già integrate. Una migrazione nuova si prova sul database di test (issue #5) oppure, finché non esiste, su un branch Neon temporaneo creato dai PM. Se il database condiviso si blocca, un PM esegue `db:reset` da `main`. Regole per i file:
 
 - nome `NNNN_descrizione.sql`: 4 cifre da `0001`, descrizione in minuscolo con parole separate da `_`, versioni senza duplicati e successive all'ultima applicata;
@@ -82,6 +84,22 @@ I valori reali li distribuiscono i PM. Le credenziali del database di produzione
 | `npm run build`         | build di produzione                             |
 | `npm run db:migrate`    | applica le migrazioni non ancora applicate      |
 | `npm run db:reset`      | ricrea lo schema e riapplica le migrazioni      |
+
+## Ambienti e pubblicazione
+
+| Ambiente   | Dove gira                            | Database (Neon)                                                         | Quando si aggiorna                                         |
+| :--------- | :----------------------------------- | :---------------------------------------------------------------------- | :--------------------------------------------------------- |
+| Locale     | `npm run dev`                        | branch `dev-teamc07`, database `omnipark` (condiviso dal team)          | a mano, con `db:migrate` da `main`                         |
+| Anteprima  | Vercel, un indirizzo per ogni branch | branch `preview`, database `omnipark` (condiviso da tutte le anteprime) | a ogni push su un branch diverso da `main`, con o senza PR |
+| Produzione | Vercel, dominio del progetto         | branch `production`, database `omnipark`                                | a ogni merge nel `main`                                    |
+
+La pubblicazione è automatica con l'integrazione Git di Vercel. A ogni push Vercel esegue `npm run db:migrate && npm run build` (`vercel.json`): prima applica le migrazioni al database dell'ambiente, poi compila. Se una migrazione fallisce, la build fallisce e il deploy non va online: resta quello precedente. Le funzioni girano nella regione `fra1` (Francoforte), vicina a Neon (`eu-central-1`). L'app GitHub di Vercel pubblica nella PR il link all'anteprima e lo stato della build. `db:reset` non gira mai su Vercel: la guardia lo rifiuta quando è impostata `VERCEL_ENV`.
+
+Le anteprime sono aperte, senza login di Vercel, perché le vedono il team e i docenti; i loro dati sono di prova e possono essere cancellati in qualsiasi momento.
+
+Le stringhe di connessione di anteprima e produzione (pooled, con `sslmode=verify-full`) le impostano i PM nelle impostazioni di Vercel. Nel repository e nei segreti di GitHub non ci sono credenziali.
+
+**Database delle anteprime condiviso.** Tutte le anteprime migrano lo stesso branch `preview`: anche un push senza PR crea un'anteprima e applica al branch `preview` le migrazioni del branch. Se le migrazioni di un branch non ancora integrato bloccano le build degli altri, nel log di build compare «Migrazione non riuscita» con uno di questi messaggi: «risulta applicata al database ma il file non esiste», «ha una versione inferiore all'ultima applicata» oppure «è stata modificata dopo essere stata applicata», seguito da «Database delle anteprime: … Un PM lo ripristina da production». In quel caso un PM ripristina il branch `preview` dal suo padre `production` dalla console di Neon e rilancia la build (Redeploy). Il ripristino cancella i dati di prova delle anteprime.
 
 ## Come si lavora
 
