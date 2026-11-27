@@ -44,7 +44,7 @@ La specifica è in `docs/rad/`: requisiti, casi d'uso, class diagram, sequence d
 - `src/presentation/`: componenti React riusabili.
 - `src/application/<sottosistema>/`: logica dei casi d'uso, una cartella per sottosistema (`utenti-accessi`, `gestione-stalli`, `gestione-soste`, `wallet`, `segnalazioni`, `amministrazione`). Niente SQL: si passa dallo strato di persistenza.
 - `src/persistence/`: unico punto con SQL (connessione, migrazioni, accesso ai dati).
-- `src/simulators/`: simulatori di sensori, ANPR e pagamenti. Parlano con l'applicazione solo tramite le API.
+- `src/simulators/`: simulatori di sensori, ANPR e pagamenti. I simulatori di sensori e ANPR parlano con l'applicazione solo tramite le API. Il simulatore di pagamento non chiama l'applicazione: è il Wallet a usarlo tramite l'interfaccia `PagamentoSimulato` (`src/simulators/pagamento/pagamentoSimulato.ts`), così un circuito reale può sostituirlo senza modificare il Wallet.
 - `src/lib/`: codice provvisorio della configurazione iniziale (oggi solo l'esempio `tariffe.ts`). La connessione al database è in `src/persistence/db.ts`. Non prendere `src/lib/` come modello e non aggiungervi codice.
 - I test stanno accanto al codice che verificano, con nome `*.test.ts` (configurazione in `vitest.config.ts`).
 
