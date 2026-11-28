@@ -134,6 +134,15 @@ export async function rimuoviVeicoloDalProfilo(
   return (r.rowCount ?? 0) > 0;
 }
 
+/**
+ * Blocca la riga dell'automobilista fino alla fine della transazione, così due rimozioni
+ * concorrenti non svuotano il profilo; false se l'automobilista non esiste.
+ */
+export async function bloccaAutomobilista(es: Esecutore, id: number): Promise<boolean> {
+  const r = await interroga(es, "SELECT id FROM automobilista WHERE id = $1 FOR UPDATE", [id]);
+  return (r.rowCount ?? 0) > 0;
+}
+
 // --- Sessioni (SD_AUTH_4 3.1 e 3.a1.2, VD_19)
 
 export async function creaSessione(
@@ -258,6 +267,21 @@ export async function ausiliari(es: Esecutore): Promise<(Ausiliario & { ente: st
     `${SELEZIONE_AUSILIARIO} ORDER BY e.nome, a.cognome, a.nome, a.id`,
   );
   return r.rows.map((riga) => ({ ...ausiliarioDa(riga), ente: riga.ente }));
+}
+
+/** Ausiliari ATTIVO dell'ente, ordinati per cognome, nome e id. */
+export async function ausiliariAttiviDellEnte(
+  es: Esecutore,
+  enteId: number,
+): Promise<Ausiliario[]> {
+  const r = await interroga<RigaAusiliario>(
+    es,
+    `${SELEZIONE_AUSILIARIO}
+     WHERE a.ente_preposto_id = $1 AND a.stato_dell_account = 'ATTIVO'
+     ORDER BY a.cognome, a.nome, a.id`,
+    [enteId],
+  );
+  return r.rows.map(ausiliarioDa);
 }
 
 export async function trovaAusiliario(es: Esecutore, id: number): Promise<Ausiliario | null> {
